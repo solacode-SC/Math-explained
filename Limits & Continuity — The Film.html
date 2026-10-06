@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Limits & Continuity — The Film</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0d0f2e;--ink:#f3f0ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#1c1e55,var(--bg) 70%);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#cap{position:absolute;left:5vw;right:5vw;bottom:84px;text-align:center;font-weight:600;font-size:clamp(17px,3vw,30px);line-height:1.3;text-shadow:0 2px 18px #0d0f2e}
+#bar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:14px;align-items:center;padding:14px 18px}
+button{background:rgba(243,240,255,.14);color:var(--ink);border:0;border-radius:999px;padding:8px 20px;font:inherit;font-weight:600;cursor:pointer;min-width:84px}
+button:hover{background:rgba(243,240,255,.24)}
+button:focus-visible,#tr:focus-visible{outline:2px solid #ffd166;outline-offset:3px}
+#tr{flex:1;height:10px;border-radius:9px;background:rgba(243,240,255,.14);cursor:pointer;overflow:hidden}
+#fl{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6b57,#ffd166,#2ee6c5)}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="cap" aria-live="polite"></div>
+<div id="bar"><button id="b">Pause</button><div id="tr" tabindex="0" role="slider" aria-label="Progress"><i id="fl"></i></div></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),cap=document.getElementById('cap'),bt=document.getElementById('b'),tr=document.getElementById('tr'),fl=document.getElementById('fl');
+const cA='255,107,87',cB='46,230,197',cG='255,209,102',cW='243,240,255',FF="'Bricolage Grotesque',system-ui,sans-serif";
+let sw,sh,U,dpr;
+function rs(){dpr=window.devicePixelRatio||1;sw=innerWidth;sh=innerHeight;cv.width=sw*dpr;cv.height=sh*dpr;U=Math.min(sw/100,sh/75)}
+addEventListener('resize',rs);rs();
+const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),ez=v=>{v=cl(v);return v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2},seg=(t,a,b)=>ez((t-a)/(b-a)),w=(t,a,b)=>seg(t,a,a+.5)*(1-seg(t,b-.5,b)),rg=(c,a)=>`rgba(${c},${a})`;
+const C=(a,b,r,f,s,l=.4)=>{x.beginPath();x.arc(a,b,Math.max(r,0),0,7);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=l;x.stroke()}};
+const ln=(a,b,c,d,col,l=.5)=>{x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.strokeStyle=col;x.lineWidth=l;x.stroke()};
+const tx=(s,a,b,z,col,al=1)=>{if(al<=.01)return;x.save();x.scale(1/U,1/U);x.globalAlpha=Math.min(1,al);x.fillStyle=col;x.font=`800 ${z*U}px ${FF}`;x.textAlign='center';x.textBaseline='middle';x.fillText(s,a*U,b*U);x.restore()};
+// graph of f(x)=x+1 (hole at x=1). 1 math unit = 14 u; origin = point (1,2)
+const plot=(a=1,k=1)=>ln(-27,27,-27+54*k,27-54*k,rg(cW,.75*a),.6);
+const hole=(a=1)=>C(0,0,1.4,'#171a4d',rg(cG,a),.5);
+const dash=(f)=>{x.setLineDash([1,1]);f();x.setLineDash([])};
+
+function s0(t){const k=seg(t,.2,2.6);plot(.45,k);hole(.45*k);
+tx('Limits & Continuity',0,-9,7,rg(cW,1),seg(t,2,3.2));tx('the epsilon–delta idea',0,-2,3.8,rg(cG,1),seg(t,3.2,4.4))}
+
+function s1(t){plot(1,1);dash(()=>{ln(-34,0,34,0,rg(cB,.4),.3);ln(0,-27,0,27,rg(cA,.4),.3)});hole();
+tx('L = 2',-30,-3,3.2,rg(cB,1));tx('a = 1',8,4,3,rg(cA,1));
+const al=seg(t,.3,.9),lf=seg(t,.6,3.8),rt=seg(t,4.2,7.4),dx=t<4?-(1.6*Math.pow(1-lf,2)+.03):(1.6*Math.pow(1-rt,2)+.03),X=14*dx,Y=-X;
+if(al>0){ln(X,Y,X,0,rg(cA,.5*al),.3);ln(X,Y,0,Y,rg(cB,.5*al),.3);C(X,Y,1.3,rg(cG,al));C(X,0,1,rg(cA,al));C(0,Y,1,rg(cB,al));
+tx(`x = ${(1+dx).toFixed(3)}   f(x) = ${(2+dx).toFixed(3)}`,0,24,3.2,rg(cW,1),al)}
+tx('lim f(x) = 2',0,-25,5,rg(cG,1),seg(t,7.6,8.4));tx('f(1) undefined',15,4,3,rg(cW,1),seg(t,7.6,8.4))}
+
+function s2(t){const ev=1-.7*seg(t,6.2,8.5)-.18*seg(t,9.2,11),E=ev*14,ba=seg(t,1.5,2.5),wa=seg(t,4,5);
+plot(.5,1);dash(()=>ln(-34,0,34,0,rg(cB,.6),.3));
+if(ba>0){x.fillStyle=rg(cB,.16*ba);x.fillRect(-34,-E,68,2*E);ln(-34,-E,34,-E,rg(cB,.8*ba),.4);ln(-34,E,34,E,rg(cB,.8*ba),.4);tx('ε',31,-E-3.2,4.5,rg(cB,1),ba)}
+if(wa>0){x.fillStyle=rg(cA,.13*wa);x.fillRect(-E,-27,2*E,54);ln(-E,-27,-E,27,rg(cA,.8*wa),.4);ln(E,-27,E,27,rg(cA,.8*wa),.4);tx('δ',E+2.8,23,4.5,rg(cA,1),wa);
+x.strokeStyle=rg(cG,wa);x.lineWidth=.5;x.strokeRect(-E,-E,2*E,2*E);ln(-E,E,E,-E,rg(cG,wa),1.3)}
+hole();tx('L',-31,-3,3.4,rg(cB,1),ba)}
+
+function s3(t){tx('lim f(x) = 2   as x → 1',0,-23,4.4,rg(cG,1),seg(t,.2,1));
+[['for every ε > 0',cB],['there is a δ > 0',cA],['so that 0 < |x − 1| < δ',cA],['gives |f(x) − 2| < ε',cB]].forEach(([s,c],i)=>tx(s,0,-11+i*9,4.6,rg(c,1),seg(t,.8+i*1.6,1.8+i*1.6)))}
+
+function s4(t){const p1=w(t,.2,4.8),p2=w(t,4.6,10);
+if(p1>0){plot(p1,1);C(0,0,1.4,'#171a4d',rg(cG,p1),.5);C(0,0,1.7,rg(cG,p1*seg(t,1.8,2.6)));tx('f(1) = 2 = limit',0,-24,4.4,rg(cG,1),p1*seg(t,2.6,3.4))}
+if(p2>0){const dl=(1-.8*seg(t,6,8.4))*14;x.fillStyle=rg(cB,.16*p2);x.fillRect(-34,-21,68,14);ln(-34,-21,34,-21,rg(cB,.7*p2),.3);ln(-34,-7,34,-7,rg(cB,.7*p2),.3);
+x.fillStyle=rg(cA,.13*p2);x.fillRect(-dl,-27,2*dl,54);
+ln(-27,14,0,14,rg(cW,.8*p2),.6);ln(0,-14,27,-14,rg(cW,.8*p2),.6);C(0,14,1.3,'#171a4d',rg(cW,p2),.4);C(0,-14,1.3,rg(cW,p2));
+ln(-dl,14,0,14,rg(cA,p2),1.4);tx('outside the band',-17,20,3,rg(cA,1),p2*seg(t,6.8,7.6));tx('jump: left 1, right 3',0,-26,4.2,rg(cA,1),p2)}}
+
+function s5(t){for(let i=0;i<6;i++){const ph=(t*.3+i/6)%1,s=26*(1-ph);x.strokeStyle=rg(cG,.5*Math.sin(ph*3.14));x.lineWidth=.4;x.strokeRect(-s*1.3,-s,2.6*s,2*s)}
+C(0,0,1,rg(cG,1));tx('Limits',0,-6,10,rg(cW,1),seg(t,.6,1.6));tx('the language of calculus',0,4,3.6,rg(cG,1),seg(t,1.6,2.6))}
+
+const D=[6.5,9.5,13,8,10,6.5],F=[s0,s1,s2,s3,s4,s5],TOT=D.reduce((a,b)=>a+b),N=D.length-1;
+const CP=[
+[[0,'What does it mean to get close to a point?'],[3,'The answer is a shrinking window: ε and δ.']],
+[[0,'Take f(x) = (x² − 1) / (x − 1), which equals x + 1 for x ≠ 1.'],[1,'Slide x toward 1 from the left…'],[4.2,'…and from the right.'],[7.6,'f(1) is undefined, yet f(x) heads to 2: the limit.']],
+[[0,'Draw the limit L = 2 as a horizontal line.'],[1.6,'Pick any tolerance ε: a band around L.'],[4.2,'Find δ: a window around a that keeps the graph inside the band.'],[6.4,'Choose a smaller ε… and the window must shrink too.'],[9.4,'It always can — that is what lim f(x) = 2 means.']],
+[[0,'Here is the whole idea, in four lines.'],[2.4,'Whatever ε you choose, I can find a δ.'],[5.6,'Inside the δ-window, f stays inside the ε-band.']],
+[[0,'Continuous at a means: the limit equals f(a).'],[2.6,'Fill the hole with f(1) = 2 — now it is continuous.'],[4.8,'A jump breaks it: the left side leaves the ε-band.'],[7.4,'No δ can fix that — not continuous.']],
+[[0,'The graph stays inside every window you draw.'],[3.2,'That is the heart of calculus.']]];
+let T=0,pl=true,L=performance.now(),key='';
+function sync(){bt.textContent=T>=TOT?'Replay':pl?'Pause':'Play'}
+bt.onclick=()=>{if(T>=TOT){T=0;pl=true}else pl=!pl;sync()};
+addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();bt.click()}});
+tr.onclick=e=>{const r=tr.getBoundingClientRect();T=cl((e.clientX-r.left)/r.width)*TOT*.999;pl=true;sync()};
+function loop(n){const dt=Math.min(.1,(n-L)/1000);L=n;
+if(pl){T=Math.min(TOT,T+dt);if(T>=TOT){pl=false;sync()}}
+let i=0,s=0;while(i<N&&T>=s+D[i]){s+=D[i];i++}const t=T-s;
+x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,sw,sh);
+for(let j=0;j<50;j++){x.fillStyle=`rgba(${cW},.13)`;x.beginPath();x.arc(sw*(.5+.5*Math.sin(j*7.3+n*.0008*(1+j%3*.3))),sh*(.5+.5*Math.sin(j*3.1+n*.0011)),1+j%3,0,7);x.fill()}
+x.translate(sw/2,sh*.42);x.scale(U,U);F[i](t);x.setTransform(1,0,0,1,0,0);
+let c=CP[i][0];for(const q of CP[i])if(q[0]<=t)c=q;const k=i+c[1];
+if(k!==key){key=k;cap.textContent=c[1];cap.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:600,easing:'ease-out'})}
+fl.style.width=T/TOT*100+'%';requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script></body></html>
