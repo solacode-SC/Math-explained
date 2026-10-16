@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fourier Series — The Film</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0d0f2e;--ink:#f3f0ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#1c1e55,var(--bg) 70%);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#cap{position:absolute;left:5vw;right:5vw;bottom:84px;text-align:center;font-weight:600;font-size:clamp(17px,3vw,30px);line-height:1.3;text-shadow:0 2px 18px #0d0f2e}
+#bar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:14px;align-items:center;padding:14px 18px}
+button{background:rgba(243,240,255,.14);color:var(--ink);border:0;border-radius:999px;padding:8px 20px;font:inherit;font-weight:600;cursor:pointer;min-width:84px}
+button:hover{background:rgba(243,240,255,.24)}
+button:focus-visible,#tr:focus-visible{outline:2px solid #ffd166;outline-offset:3px}
+#tr{flex:1;height:10px;border-radius:9px;background:rgba(243,240,255,.14);cursor:pointer;overflow:hidden}
+#fl{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6b57,#ffd166,#2ee6c5)}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="cap" aria-live="polite"></div>
+<div id="bar"><button id="b">Pause</button><div id="tr" tabindex="0" role="slider" aria-label="Progress"><i id="fl"></i></div></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),cap=document.getElementById('cap'),bt=document.getElementById('b'),tr=document.getElementById('tr'),fl=document.getElementById('fl');
+const cA='255,107,87',cB='46,230,197',cG='255,209,102',cW='243,240,255',FF="'Bricolage Grotesque',system-ui,sans-serif";
+let sw,sh,U,dpr;
+function rs(){dpr=window.devicePixelRatio||1;sw=innerWidth;sh=innerHeight;cv.width=sw*dpr;cv.height=sh*dpr;U=Math.min(sw/100,sh/75)}
+addEventListener('resize',rs);rs();
+const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),ez=v=>{v=cl(v);return v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2},seg=(t,a,b)=>ez((t-a)/(b-a)),w=(t,a,b)=>seg(t,a,a+.5)*(1-seg(t,b-.5,b)),rg=(c,a)=>`rgba(${c},${a})`;
+const C=(a,b,r,f,s,l=.4)=>{x.beginPath();x.arc(a,b,Math.max(r,0),0,7);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=l;x.stroke()}};
+const ln=(a,b,c,d,col,l=.5)=>{x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.strokeStyle=col;x.lineWidth=l;x.stroke()};
+const tx=(s,a,b,z,col,al=1)=>{if(al<=.01)return;x.save();x.scale(1/U,1/U);x.globalAlpha=Math.min(1,al);x.fillStyle=col;x.font=`800 ${z*U}px ${FF}`;x.textAlign='center';x.textBaseline='middle';x.fillText(s,a*U,b*U);x.restore()};
+const dash=(f)=>{x.setLineDash([1,1]);f();x.setLineDash([])};
+
+function arrow(x1,y1,x2,y2,col,lw=.8,head=2.2){
+  const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
+  if(len<0.2)return;
+  ln(x1,y1,x2,y2,col,lw);
+  const ang=Math.atan2(dy,dx);
+  x.beginPath();
+  x.moveTo(x2,y2);
+  x.lineTo(x2-head*Math.cos(ang-0.45),y2-head*Math.sin(ang-0.45));
+  x.lineTo(x2-head*Math.cos(ang+0.45),y2-head*Math.sin(ang+0.45));
+  x.closePath();
+  x.fillStyle=col;x.fill();
+}
+
+// Renders Fourier Square Wave Epicycles
+// cx, cy: center of first circle
+// numHarmonics: how many odd terms: 1, 2, 3, ...
+// time: current angle theta
+// baseR: base radius (4/pi * scale)
+function drawFourierEpicycles(cx, cy, numHarmonics, time, baseR=13){
+  let prevX=cx, prevY=cy;
+  for(let i=0;i<numHarmonics;i++){
+    const n=2*i+1;
+    const r=baseR*(4/(Math.PI*n));
+    const ang=n*time;
+    const nx=prevX+r*Math.cos(ang);
+    const ny=prevY-r*Math.sin(ang);
+
+    // Draw circle
+    x.strokeStyle=rg(i===0?cG:i===1?cA:cB,.28);
+    x.lineWidth=.35;
+    x.beginPath();x.arc(prevX,prevY,r,0,7);x.stroke();
+
+    // Draw vector
+    arrow(prevX,prevY,nx,ny,rg(i===0?cG:i===1?cA:cB,.9),.8,1.6);
+    C(nx,ny,1,rg(cW,.9));
+
+    prevX=nx; prevY=ny;
+  }
+  return {tipX:prevX, tipY:prevY};
+}
+
+function s0(t){
+  // Title scene
+  const k=seg(t,.2,2.5);
+  const ep=drawFourierEpicycles(-18,0,3,t*1.8,13*k);
+  // Traced wave
+  const waveX=-3,waveW=38;
+  x.beginPath();
+  for(let px=0;px<=waveW;px+=.5){
+    const ang=(t*1.8)-(px/waveW)*Math.PI*4;
+    let wy=0;
+    for(let i=0;i<3;i++){
+      const n=2*i+1;
+      wy+=13*k*(4/(Math.PI*n))*Math.sin(n*ang);
+    }
+    if(px===0)x.moveTo(waveX+px,-wy);else x.lineTo(waveX+px,-wy);
+  }
+  x.strokeStyle=rg(cB,.8*k);x.lineWidth=.8;x.stroke();
+  dash(()=>{ln(ep.tipX,ep.tipY,waveX,ep.tipY,rg(cG,.5*k),.35)});
+  C(waveX,ep.tipY,1.4,rg(cG,k));
+
+  tx('Fourier Series',0,-12,7.5,rg(cW,1),seg(t,1.8,3));
+  tx('Circles combining to draw a shape',0,-5,3.6,rg(cG,1),seg(t,3,4.2));
+  tx('the harmonic architecture of signals and shapes',0,1,3,rg(cB,1),seg(t,4.2,5.4));
+}
+
+function s1(t){
+  // 1 Circle: Fundamental Harmonic (N = 1)
+  const k=seg(t,.2,1);
+  tx('1st Harmonic: Pure Sine Wave (N = 1)',0,-24,4.2,rg(cG,1),k);
+
+  const cx=-20,cy=0,time=t*1.6;
+  const ep=drawFourierEpicycles(cx,cy,1,time,13);
+
+  // Divider axis
+  dash(()=>{
+    ln(-35,0,35,0,rg(cW,.2*k),.3);
+    ln(-3,-20,-3,20,rg(cW,.2*k),.3);
+  });
+
+  // Traced Sine wave on right
+  const waveX=-3,waveW=36;
+  x.beginPath();
+  for(let px=0;px<=waveW;px+=.5){
+    const ang=time-(px/waveW)*Math.PI*3.5;
+    const wy=13*(4/Math.PI)*Math.sin(ang);
+    if(px===0)x.moveTo(waveX+px,-wy);else x.lineTo(waveX+px,-wy);
+  }
+  x.strokeStyle=rg(cG,1);x.lineWidth=.9;x.stroke();
+
+  // Horizontal connector line
+  dash(()=>{ln(ep.tipX,ep.tipY,waveX,ep.tipY,rg(cG,.7),.4)});
+  C(waveX,ep.tipY,1.5,rg(cG,1));
+
+  tx('f(x) = (4/π) sin(x)',15,-15,3.6,rg(cW,1),k);
+  tx('A single circle draws a smooth, fundamental wave',0,23,3.4,rg(cW,.9),seg(t,3,4.5));
+}
+
+function s2(t){
+  // 2 Circles: 1st + 3rd Harmonic (N = 2)
+  const k=seg(t,.2,1);
+  tx('Adding 3rd Harmonic: f(x) = (4/π) [ sin(x) + (1/3) sin(3x) ]',0,-24,4.2,rg(cA,1),k);
+
+  const cx=-20,cy=0,time=t*1.6;
+  const ep=drawFourierEpicycles(cx,cy,2,time,13);
+
+  dash(()=>{
+    ln(-35,0,35,0,rg(cW,.2*k),.3);
+    ln(-3,-20,-3,20,rg(cW,.2*k),.3);
+  });
+
+  const waveX=-3,waveW=36;
+  x.beginPath();
+  for(let px=0;px<=waveW;px+=.5){
+    const ang=time-(px/waveW)*Math.PI*3.5;
+    const wy=13*(4/Math.PI)*(Math.sin(ang)+(1/3)*Math.sin(3*ang));
+    if(px===0)x.moveTo(waveX+px,-wy);else x.lineTo(waveX+px,-wy);
+  }
+  x.strokeStyle=rg(cA,1);x.lineWidth=.9;x.stroke();
+
+  dash(()=>{ln(ep.tipX,ep.tipY,waveX,ep.tipY,rg(cA,.7),.4)});
+  C(waveX,ep.tipY,1.5,rg(cA,1));
+
+  tx('Small circle spins 3× faster (3ω)',-20,-17,2.7,rg(cA,1),k);
+  tx('It depresses the rounded peaks and steepens the climb',0,23,3.4,rg(cW,.9),seg(t,3.5,5));
+}
+
+function s3(t){
+  // 3 Circles: 1st + 3rd + 5th Harmonic (N = 3)
+  const k=seg(t,.2,1);
+  tx('Adding 5th Harmonic: Approaching Square Wave',0,-24,4.2,rg(cB,1),k);
+
+  const cx=-20,cy=0,time=t*1.6;
+  const ep=drawFourierEpicycles(cx,cy,3,time,13);
+
+  dash(()=>{
+    ln(-35,0,35,0,rg(cW,.2*k),.3);
+    ln(-3,-20,-3,20,rg(cW,.2*k),.3);
+  });
+
+  const waveX=-3,waveW=36;
+  x.beginPath();
+  for(let px=0;px<=waveW;px+=.5){
+    const ang=time-(px/waveW)*Math.PI*3.5;
+    const wy=13*(4/Math.PI)*(Math.sin(ang)+(1/3)*Math.sin(3*ang)+(1/5)*Math.sin(5*ang));
+    if(px===0)x.moveTo(waveX+px,-wy);else x.lineTo(waveX+px,-wy);
+  }
+  x.strokeStyle=rg(cB,1);x.lineWidth=.9;x.stroke();
+
+  dash(()=>{ln(ep.tipX,ep.tipY,waveX,ep.tipY,rg(cB,.7),.4)});
+  C(waveX,ep.tipY,1.5,rg(cB,1));
+
+  tx('Formula:  f(x) = (4/π) ∑  sin((2k−1)x) / (2k−1)',15,-16,3.3,rg(cG,1),k);
+  tx('Notice the flat plateaus and sharper vertical transitions',0,23,3.4,rg(cB,1),seg(t,3.5,5));
+}
+
+function s4(t){
+  // Many Epicycles (N = 15): The Sharp Square Wave and Gibbs Phenomenon
+  const k=seg(t,.2,1);
+  tx('N = 15 Harmonics: The Crisp Square Wave',0,-24,4.2,rg(cG,1),k);
+
+  const cx=-22,cy=0,time=t*1.4;
+  const ep=drawFourierEpicycles(cx,cy,15,time,13);
+
+  dash(()=>{
+    ln(-35,0,35,0,rg(cW,.2*k),.3);
+    ln(-5,-20,-5,20,rg(cW,.2*k),.3);
+  });
+
+  const waveX=-5,waveW=38;
+  x.beginPath();
+  for(let px=0;px<=waveW;px+=.4){
+    const ang=time-(px/waveW)*Math.PI*4;
+    let wy=0;
+    for(let i=0;i<15;i++){
+      const n=2*i+1;
+      wy+=13*(4/(Math.PI*n))*Math.sin(n*ang);
+    }
+    if(px===0)x.moveTo(waveX+px,-wy);else x.lineTo(waveX+px,-wy);
+  }
+  x.strokeStyle=rg(cG,1);x.lineWidth=1;x.stroke();
+
+  dash(()=>{ln(ep.tipX,ep.tipY,waveX,ep.tipY,rg(cG,.7),.35)});
+  C(waveX,ep.tipY,1.5,rg(cG,1));
+
+  // Gibbs phenomenon callout
+  tx('Gibbs Phenomenon: subtle 9% ringing ripples near corners',0,23,3.3,rg(cA,1),seg(t,4,5.5));
+  tx('Infinite smooth circles combine to form sharp perpendicular steps!',0,27,3.1,rg(cW,.9),seg(t,5.5,7));
+}
+
+function s5(t){
+  // 2D Fourier Epicycles Drawing a Star / Closed Contour
+  const k=seg(t,.2,1);
+  tx('2D Complex Epicycles: Drawing Closed Shapes',0,-24,4.4,rg(cG,1),k);
+
+  // A star contour traced by 4 complex rotating vectors:
+  // z(t) = 14 e^(it) + 5 e^(-4it) + 3 e^(6it)
+  const time=t*1.2;
+  const r1=12,r2=5,r3=3;
+  const a1=time, a2=-4*time, a3=6*time;
+
+  const x0=0,y0=0;
+  const x1=x0+r1*Math.cos(a1),y1=y0-r1*Math.sin(a1);
+  const x2=x1+r2*Math.cos(a2),y2=y1-r2*Math.sin(a2);
+  const x3=x2+r3*Math.cos(a3),y3=y2-r3*Math.sin(a3);
+
+  // Draw circles
+  x.strokeStyle=rg(cW,.15);x.lineWidth=.3;
+  x.beginPath();x.arc(x0,y0,r1,0,7);x.stroke();
+  x.beginPath();x.arc(x1,y1,r2,0,7);x.stroke();
+  x.beginPath();x.arc(x2,y2,r3,0,7);x.stroke();
+
+  // Draw vectors
+  arrow(x0,y0,x1,y1,rg(cA,.8),.7,1.8);
+  arrow(x1,y1,x2,y2,rg(cB,.8),.7,1.8);
+  arrow(x2,y2,x3,y3,rg(cG,.9),.8,1.8);
+  C(x3,y3,1.6,rg(cG,1));
+
+  // Traced star trail
+  x.beginPath();
+  for(let th=0;th<=time;th+=.03){
+    const tx=r1*Math.cos(th)+r2*Math.cos(-4*th)+r3*Math.cos(6*th);
+    const ty=-(r1*Math.sin(th)+r2*Math.sin(-4*th)+r3*Math.sin(6*th));
+    if(th===0)x.moveTo(tx,ty);else x.lineTo(tx,ty);
+  }
+  x.strokeStyle=rg(cG,.85);x.lineWidth=.9;x.stroke();
+
+  tx('z(t) = ∑ cₙ e^(i n ω t)',0,-18,3.6,rg(cW,1),k);
+  tx('By choosing speeds and sizes, epicycles can draw ANY 2D shape',0,23,3.4,rg(cB,1),seg(t,4,5.5));
+}
+
+function s6(t){
+  // Finale
+  for(let i=0;i<5;i++){
+    const r=(i+1)*5;
+    x.strokeStyle=rg(i%2?cB:cG,.3);x.lineWidth=.4;
+    x.beginPath();x.arc(0,0,r,0,7);x.stroke();
+    const an=t*(i+1)*.8;
+    C(r*Math.cos(an),r*Math.sin(an),1.2,rg(cG,1));
+  }
+  tx('Fourier Series',0,-6,10,rg(cW,1),seg(t,.5,1.5));
+  tx('every complex pattern is a symphony of pure circles',0,4,3.6,rg(cG,1),seg(t,1.5,2.5));
+}
+
+const D=[6.5,10,12,11,14,11,7],F=[s0,s1,s2,s3,s4,s5,s6],TOT=D.reduce((a,b)=>a+b),N=D.length-1;
+const CP=[
+[[0,'How do simple rotations add together to produce complex patterns?'],[3,'Fourier analysis reveals that every signal is made of circles.']],
+[[0,'Start with a single circle rotating at frequency 1.'],[3,'Its vertical position traces a pure, smooth sine wave.'],[6.5,'f(x) = (4/π) sin(x).']],
+[[0,'Now add a second circle at its tip, spinning 3 times faster.'],[3.5,'Radius is 1/3: it flattens the top and steepens the sides.'],[7.5,'The combination begins to look less like a wave and more like a box.']],
+[[0,'Add the 5th harmonic: frequency 5, amplitude 1/5.'],[3.5,'f(x) = (4/π) [ sin(x) + sin(3x)/3 + sin(5x)/5 ].'],[7.5,'The waveform forms clean horizontal plateaus.']],
+[[0,'Now chain 15 rotating epicycles together.'],[3.5,'The traced curve forms a crisp, sharp square wave.'],[8,'Near the sharp corners, subtle ripples appear: the Gibbs phenomenon.'],[11.5,'In the limit, infinite smooth circles build perfect right angles.']],
+[[0,'In the two-dimensional complex plane: z(t) = ∑ cₙ e^(int).'],[3.5,'Rotating vectors chained tip-to-tail can draw ANY closed shape.'],[7.5,'From stars to portraits and mathematical knots.']],
+[[0,'From sound waves and JPEG compression to quantum states…'],[3,'Fourier series are the universal symphony of mathematics.']]];
+
+let T=0,pl=true,L=performance.now(),key='';
+function sync(){bt.textContent=T>=TOT?'Replay':pl?'Pause':'Play'}
+bt.onclick=()=>{if(T>=TOT){T=0;pl=true}else pl=!pl;sync()};
+addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();bt.click()}});
+tr.onclick=e=>{const r=tr.getBoundingClientRect();T=cl((e.clientX-r.left)/r.width)*TOT*.999;pl=true;sync()};
+function loop(n){const dt=Math.min(.1,(n-L)/1000);L=n;
+if(pl){T=Math.min(TOT,T+dt);if(T>=TOT){pl=false;sync()}}
+let i=0,s=0;while(i<N&&T>=s+D[i]){s+=D[i];i++}const t=T-s;
+x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,sw,sh);
+for(let j=0;j<50;j++){x.fillStyle=`rgba(${cW},.13)`;x.beginPath();x.arc(sw*(.5+.5*Math.sin(j*7.3+n*.0008*(1+j%3*.3))),sh*(.5+.5*Math.sin(j*3.1+n*.0011)),1+j%3,0,7);x.fill()}
+x.translate(sw/2,sh*.42);x.scale(U,U);F[i](t);x.setTransform(1,0,0,1,0,0);
+let c=CP[i][0];for(const q of CP[i])if(q[0]<=t)c=q;const k=i+c[1];
+if(k!==key){key=k;cap.textContent=c[1];cap.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:600,easing:'ease-out'})}
+fl.style.width=T/TOT*100+'%';requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script></body></html>
+

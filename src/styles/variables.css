@@ -1,0 +1,28 @@
+:root {
+  /* Core palette requested by user */
+  --bg-cream: #F5F0DF;
+  --bg-cream-dark: #ECE6D0;
+  --bg-paper-light: #FAF6EC;
+  --ink-dark: #25271F;
+  --olive-muted: #6D7652;
+  --olive-light: #A5AA83;
+  --olive-dark: #464E30;
+  --accent-orange: #D97828;
+  --accent-yellow: #E8C94A;
+  --accent-blue: #557A91;
+  --accent-pink: #D98791;
+
+  /* Additional functional tokens */
+  --border-ink: 2px solid var(--ink-dark);
+  --border-thick: 2.5px solid var(--ink-dark);
+  --radius-window: 14px;
+  --radius-button: 8px;
+  --shadow-retro: 4px 6px 0px rgba(37, 39, 31, 0.22);
+  --shadow-retro-pressed: 1px 2px 0px rgba(37, 39, 31, 0.22);
+
+  /* Typography */
+  --font-arabic-primary: 'Cairo', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
+  --font-display: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
+  --font-mono: 'Courier Prime', 'Consolas', 'Courier New', monospace;
+}
+

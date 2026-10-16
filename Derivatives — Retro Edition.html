@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المُشتق — خط المماس يتحرك على المنحنى | Math Explained</title>
+
+<!-- Arabic Web Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ==========================================================================
+   1. VISUAL IDENTITY & RETRO 90s PALETTE
+   ========================================================================== */
+:root {
+  --bg-cream: #F5F0DF;
+  --bg-cream-dark: #ECE6D0;
+  --bg-paper-light: #FAF6EC;
+  --ink-dark: #25271F;
+  --olive-muted: #6D7652;
+  --olive-light: #A5AA83;
+  --olive-dark: #464E30;
+  --accent-orange: #D97828;
+  --accent-yellow: #E8C94A;
+  --accent-blue: #557A91;
+  --accent-pink: #D98791;
+
+  --border-thick: 2.5px solid var(--ink-dark);
+  --border-thin: 1.5px solid var(--ink-dark);
+  --radius-window: 14px;
+  --radius-btn: 8px;
+  --shadow-retro: 4px 6px 0px rgba(37, 39, 31, 0.22);
+  --shadow-sm: 2px 3px 0px rgba(37, 39, 31, 0.2);
+
+  --font-arabic: 'Cairo', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-mono: 'Courier Prime', 'Consolas', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-cream);
+  background-image: 
+    linear-gradient(to right, rgba(109, 118, 82, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(109, 118, 82, 0.08) 1px, transparent 1px),
+    linear-gradient(to right, rgba(109, 118, 82, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(109, 118, 82, 0.16) 1px, transparent 1px);
+  background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+  background-position: -1px -1px;
+  color: var(--ink-dark);
+  font-family: var(--font-arabic);
+  min-height: 100vh;
+  padding-bottom: 95px;
+  position: relative;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* Subtle physical paper grain */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.032;
+  background-image: radial-gradient(var(--ink-dark) 1px, transparent 0);
+  background-size: 4px 4px;
+  z-index: 9999;
+}
+
+/* ==========================================================================
+   2. RETRO WINDOW COMPONENT STYLING
+   ========================================================================== */
+.retro-window {
+  background: var(--bg-paper-light);
+  border: var(--border-thick);
+  border-radius: var(--radius-window);
+  box-shadow: var(--shadow-retro);
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.retro-window-header {
+  background: var(--olive-muted);
+  color: var(--bg-paper-light);
+  border-bottom: var(--border-thick);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.window-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  direction: ltr;
+}
+
+.window-grooves {
+  flex: 1;
+  height: 10px;
+  margin: 0 16px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--olive-light) 0,
+    var(--olive-light) 1.5px,
+    transparent 1.5px,
+    transparent 3px
+  );
+  opacity: 0.75;
+  border-radius: 2px;
+}
+
+.window-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ctrl-btn {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-dark);
+  cursor: pointer;
+}
+.ctrl-yellow { background: var(--accent-yellow); }
+.ctrl-pink { background: var(--accent-pink); }
+
+.retro-window-body {
+  padding: 22px;
+  position: relative;
+  background: var(--bg-paper-light);
+}
+
+.retro-window-footer {
+  background: var(--bg-cream-dark);
+  border-top: 1.5px solid var(--olive-light);
+  padding: 5px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-dark);
+  direction: ltr;
+}
+
+/* ==========================================================================
+   3. RETRO BUTTONS & BADGES
+   ========================================================================== */
+.retro-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-cream-dark);
+  color: var(--ink-dark);
+  border: var(--border-thin);
+  border-radius: var(--radius-btn);
+  font-family: var(--font-arabic);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 6px 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.12s ease;
+  user-select: none;
+}
+.retro-btn:hover {
+  background: #FFFDF5;
+  transform: translateY(-1px);
+  box-shadow: 3px 4px 0px rgba(37,39,31,0.28);
+}
+.retro-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0px 1px 0px rgba(37,39,31,0.2);
+}
+.retro-btn.primary {
+  background: var(--olive-muted);
+  color: #FFFFFF;
+}
+.retro-btn.orange {
+  background: var(--accent-orange);
+  color: #FFFFFF;
+}
+.retro-btn.active {
+  background: var(--ink-dark);
+  color: var(--accent-yellow);
+}
+
+.retro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1.5px solid var(--ink-dark);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--bg-cream-dark);
+}
+
+/* ==========================================================================
+   4. DESKTOP ICONS (RETRO METAPHOR)
+   ========================================================================== */
+.desktop-icon {
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  width: 82px;
+  text-align: center;
+  transition: all 0.15s ease;
+  color: inherit;
+  text-decoration: none;
+}
+.desktop-icon:hover {
+  background: rgba(165, 170, 131, 0.25);
+  border-color: var(--olive-muted);
+}
+.desktop-icon.active {
+  background: var(--olive-light);
+  border: 1.5px dashed var(--ink-dark);
+}
+.desktop-icon .icon-symbol {
+  font-size: 30px;
+  line-height: 1;
+  filter: drop-shadow(1px 2px 0px rgba(37,39,31,0.2));
+}
+.desktop-icon .icon-label {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.desktop-icon .icon-sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--olive-muted);
+}
+
+/* Side navigation bars */
+.desktop-sidebar-right {
+  position: fixed;
+  top: 78px;
+  right: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 80;
+}
+.desktop-sidebar-left {
+  position: fixed;
+  top: 78px;
+  left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 80;
+}
+
+@media (max-width: 1080px) {
+  .desktop-sidebar-right, .desktop-sidebar-left {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   5. TOP TIMELINE PROGRESS SCRUBBER
+   ========================================================================== */
+.top-scrubber-container {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 900;
+  background: rgba(245, 240, 223, 0.94);
+  border: var(--border-thin);
+  border-radius: 30px;
+  padding: 5px 16px;
+  box-shadow: var(--shadow-retro);
+  backdrop-filter: blur(8px);
+  max-width: 94vw;
+  overflow-x: auto;
+}
+.scrubber-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.scrubber-node {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-family: var(--font-arabic);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-dark);
+  transition: all 0.2s ease;
+}
+.scrubber-node.active {
+  background: var(--olive-muted);
+  color: #FFFFFF;
+  font-weight: 800;
+}
+.scrubber-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-dark);
+  background: var(--bg-cream-dark);
+  display: inline-block;
+}
+.scrubber-node.active .scrubber-dot {
+  background: var(--accent-orange);
+  box-shadow: 0 0 6px var(--accent-orange);
+}
+.scrubber-node.passed .scrubber-dot {
+  background: var(--olive-muted);
+}
+.scrubber-connector {
+  width: 14px;
+  height: 2px;
+  background: var(--olive-light);
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   6. BOTTOM VIDEO CONTROLS BAR
+   ========================================================================== */
+.bottom-chapter-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--olive-muted);
+  border-top: var(--border-thick);
+  box-shadow: 0 -4px 16px rgba(37, 39, 31, 0.18);
+  padding: 9px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--bg-paper-light);
+}
+
+.timeline-counter {
+  background: var(--ink-dark);
+  color: var(--accent-yellow);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid var(--accent-yellow);
+  direction: ltr;
+}
+
+/* ==========================================================================
+   7. DOCUMENTARY SUBTITLES & TYPOGRAPHY
+   ========================================================================== */
+.narration-container {
+  text-align: center;
+  margin: 12px auto 20px;
+  max-width: 820px;
+}
+.huge-title {
+  font-size: clamp(38px, 5.5vw, 56px);
+  font-weight: 900;
+  color: var(--ink-dark);
+  margin-bottom: 6px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.medium-subtitle {
+  font-size: clamp(17px, 2.4vw, 23px);
+  font-weight: 700;
+  color: var(--olive-muted);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.doc-subtitle-card {
+  display: inline-block;
+  background: rgba(245, 240, 223, 0.96);
+  border: 2px solid var(--ink-dark);
+  border-radius: 10px;
+  padding: 10px 24px;
+  margin: 8px 0;
+  box-shadow: var(--shadow-retro);
+  max-width: 92%;
+  animation: subtitleAppear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.doc-subtitle-text {
+  font-size: clamp(16px, 2.1vw, 20px);
+  font-weight: 700;
+  color: var(--ink-dark);
+  line-height: 1.55;
+  margin: 0;
+}
+.small-hint {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--olive-muted);
+  margin-top: 8px;
+}
+
+@keyframes subtitleAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+/* Formula Box */
+.formula-box {
+  background: var(--bg-cream-dark);
+  border: 1.5px solid var(--olive-light);
+  border-radius: 10px;
+  padding: 10px 18px;
+  margin: 8px;
+  box-shadow: 1px 2px 0px rgba(37,39,31,0.12);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  direction: ltr;
+}
+.formula-box.highlight {
+  background: #FFFDF5;
+  border: 2px solid var(--accent-orange);
+  box-shadow: 2px 4px 0px rgba(217, 120, 40, 0.25);
+}
+.formula-math {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink-dark);
+}
+.formula-label {
+  direction: rtl;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--olive-muted);
+  align-self: flex-start;
+}
+.formula-sub {
+  direction: rtl;
+  font-size: 11px;
+  color: var(--ink-dark);
+  opacity: 0.85;
+}
+
+/* ==========================================================================
+   8. MAIN STAGE LAYOUT
+   ========================================================================== */
+#scene-stage {
+  padding-top: 80px;
+  padding-left: 20px;
+  padding-right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 180px);
+}
+
+.scene-content {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  display: none;
+  animation: sceneFade 0.4s ease-out forwards;
+}
+.scene-content.active {
+  display: block;
+}
+
+@keyframes sceneFade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile responsive fixes */
+@media (max-width: 680px) {
+  .huge-title { font-size: 32px; }
+  .medium-subtitle { font-size: 16px; }
+  .bottom-chapter-bar { padding: 6px 12px; }
+  .timeline-counter { font-size: 11px; }
+  .top-scrubber-container { padding: 4px 10px; }
+  .scrubber-node { font-size: 11px; padding: 2px 5px; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ==========================================================================
+     TOP SCENE PROGRESS SCRUBBER
+     ========================================================================== -->
+<div class="top-scrubber-container" role="navigation" aria-label="مخطط المشاهد">
+  <div class="scrubber-list" id="scrubber-list">
+    <!-- Populated dynamically by JavaScript -->
+  </div>
+</div>
+
+<!-- ==========================================================================
+     RETRO DESKTOP SIDEBAR ICONS
+     ========================================================================== -->
+<aside class="desktop-sidebar-right" aria-label="أيقونات سطح المكتب اليمنى">
+  <div class="desktop-icon active" onclick="jumpToScene(0)" id="d-icon-0">
+    <span class="icon-symbol">⚡</span>
+    <span class="icon-label">المشتق</span>
+    <span class="icon-sub">DERIV.EXE</span>
+  </div>
+  <div class="desktop-icon" onclick="jumpToScene(1)" id="d-icon-1">
+    <span class="icon-symbol">📈</span>
+    <span class="icon-label">المنحنى</span>
+    <span class="icon-sub">CURVE.DAT</span>
+  </div>
+  <div class="desktop-icon" onclick="jumpToScene(2)" id="d-icon-2">
+    <span class="icon-symbol">🧭</span>
+    <span class="icon-label">المماس</span>
+    <span class="icon-sub">TANGENT.SYS</span>
+  </div>
+  <div class="desktop-icon" onclick="jumpToScene(3)" id="d-icon-3">
+    <span class="icon-symbol">📐</span>
+    <span class="icon-label">القاطع</span>
+    <span class="icon-sub">SECANT.LIB</span>
+  </div>
+</aside>
+
+<aside class="desktop-sidebar-left" aria-label="أيقونات سطح المكتب اليسرى">
+  <div class="desktop-icon" onclick="jumpToScene(4)" id="d-icon-4">
+    <span class="icon-symbol">📊</span>
+    <span class="icon-label">المعادلة</span>
+    <span class="icon-sub">LIMIT.DAT</span>
+  </div>
+  <div class="desktop-icon" onclick="jumpToScene(5)" id="d-icon-5">
+    <span class="icon-symbol">🚗</span>
+    <span class="icon-label">السيارة</span>
+    <span class="icon-sub">VELOCITY</span>
+  </div>
+  <div class="desktop-icon" onclick="jumpToScene(6)" id="d-icon-6">
+    <span class="icon-symbol">🧪</span>
+    <span class="icon-label">المختبر</span>
+    <span class="icon-sub">LAB.EXE</span>
+  </div>
+  <a href="index.html" class="desktop-icon" style="color: inherit;">
+    <span class="icon-symbol">🏠</span>
+    <span class="icon-label">الرئيسية</span>
+    <span class="icon-sub">INDEX.HTM</span>
+  </a>
+</aside>
+
+<!-- ==========================================================================
+     MAIN CINEMATIC STAGE (SCENES 01 to 08)
+     ========================================================================== -->
+<main id="scene-stage">
+
+  <!-- ==================== SCENE 01: INTRO ==================== -->
+  <section class="scene-content active" id="scene-0">
+    <div class="retro-window" style="max-width: 760px;">
+      <div class="retro-window-header">
+        <div class="window-title"><span>⚡</span><span>C:\MATH\DERIVATIVES\INTRO.EXE</span></div>
+        <div class="window-grooves"></div>
+        <div class="window-controls">
+          <span class="ctrl-btn ctrl-yellow"></span>
+          <span class="ctrl-btn ctrl-pink"></span>
+        </div>
+      </div>
+      <div class="retro-window-body" style="text-align: center; padding: 30px 20px;">
+        <div style="display:inline-block; background:var(--accent-yellow); border:1.5px solid var(--ink-dark); border-radius:6px; padding:3px 12px; font-family:var(--font-mono); font-weight:800; font-size:12px; margin-bottom:12px; box-shadow:2px 2px 0px var(--ink-dark);">
+          الفيلم التعليمي 01 • حساب التفاضل
+        </div>
+
+        <div class="narration-container">
+          <h1 class="huge-title">المُشْتَق</h1>
+          <h2 class="medium-subtitle">لغة تصف كيف تتغير الأشياء في كل لحظة</h2>
+          <div class="doc-subtitle-card">
+            <p class="doc-subtitle-text" id="s0-sub">تخيّل أنك تتحرك على طريق منحني لا ينتهي...</p>
+          </div>
+          <p class="small-hint">السؤال ليس: أين أنت؟ بل: كيف يتغيّر اتجاهك الآن؟</p>
+        </div>
+
+        <!-- Animated Intro Vector Graphic -->
+        <div style="margin: 20px auto; width: 220px; height: 90px; border: 1.5px dashed var(--olive-muted); border-radius: 8px; background: var(--bg-cream); display: flex; align-items: center; justify-content: center;">
+          <svg width="200" height="70" viewBox="0 0 200 70">
+            <path d="M 15 58 Q 100 58 185 12" fill="none" stroke="var(--ink-dark)" stroke-width="2.5" />
+            <line x1="45" y1="62" x2="160" y2="12" stroke="var(--accent-orange)" stroke-width="2.5" stroke-dasharray="4 2" />
+            <circle cx="100" cy="35" r="5.5" fill="var(--accent-orange)" stroke="var(--ink-dark)" stroke-width="1.5" />
+          </svg>
+        </div>
+
+        <div style="margin-top: 18px;">
+          <button class="retro-btn orange" onclick="jumpToScene(1)" style="font-size: 15px; padding: 10px 28px;">
+            <span>▶ ابدأ الرحلة التعليمية</span>
+          </button>
+        </div>
+      </div>
+      <div class="retro-window-footer">
+        <span>MATH_COPROCESSOR: 80387 ACTIVE • 640KB RAM</span>
+        <span>نظام التعليم الكلاسيكي 1994</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SCENE 02: THE CURVE ==================== -->
+  <section class="scene-content" id="scene-1">
+    <div class="narration-container">
+      <h1 class="huge-title">المنحنى والدالة</h1>
+      <h2 class="medium-subtitle">f(x) = x² : المسار الهندسي الذي نتحرك عليه</h2>
+      <div class="doc-subtitle-card">
+        <p class="doc-subtitle-text" id="s1-sub">هذه هي الدالة... والنقطة ترسم رحلتنا المستمرة عليها.</p>
+      </div>
+      <p class="small-hint">اسحب النقطة البرتقالية على الرسم أو استخدم شريط التمرير</p>
+    </div>
+
+    <div class="retro-window">
+      <div class="retro-window-header">
+        <div class="window-title"><span>📈</span><span>C:\MATH\CURVE_PARABOLA.DAT</span></div>
+        <div class="window-grooves"></div>
+        <div class="window-controls">
+          <span class="ctrl-btn ctrl-yellow"></span>
+          <span class="ctrl-btn ctrl-pink"></span>
+        </div>
+      </div>
+      <div class="retro-window-body">
+        <div id="graph-container-1"></div>
+        <div style="display:flex; justify-content:center; gap:14px; margin-top:14px; flex-wrap:wrap;">
+          <div class="retro-badge">الموقع السيني: <span style="color:var(--accent-orange);" id="s1-x">x = +1.20</span></div>
+          <div class="retro-badge">الموقع الصادي: <span style="color:var(--olive-muted);" id="s1-y">y = f(x) = +1.44</span></div>
+        </div>
+      </div>
+      <div class="retro-window-footer">
+        <span id="s1-status">COORDINATES: (1.20, 1.44) • 60 FPS</span>
+        <span>الدالة التربيعية القياسية</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SCENE 03: THE TANGENT ==================== -->
+  <section class="scene-content" id="scene-2">
+    <div class="narration-container">
+      <h1 class="huge-title">خط المماس</h1>
+      <h2 class="medium-subtitle">البوصلة اللحظية: يلامس المنحنى ليخبرنا بالاتجاه الآن</h2>
+      <div class="doc-subtitle-card">
+        <p class="doc-subtitle-text" id="s2-sub">هذا هو خط المماس... إنه يخبرنا باتجاه المنحنى في هذه اللحظة بالذات.</p>
+      </div>
+      <p class="small-hint">المنحنى = المسار | النقطة = الموقع الحالي | المماس = الاتجاه اللحظي</p>
+    </div>
+
+    <div class="retro-window">
+      <div class="retro-window-header">
+        <div class="window-title"><span>🧭</span><span>C:\MATH\TANGENT_VECTOR.SYS</span></div>
+        <div class="window-grooves"></div>
+        <div class="window-controls">
+          <span class="ctrl-btn ctrl-yellow"></span>
+          <span class="ctrl-btn ctrl-pink"></span>
+        </div>
+      </div>
+      <div class="retro-window-body">
+        <div id="graph-container-2"></div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-top:16px;">
+          <div style="background:var(--bg-cream); border:1.5px solid var(--ink-dark); border-radius:8px; padding:10px; text-align:center;">
+            <div style="font-size:20px;">🛣️</div>
+            <strong style="font-size:13px; display:block;">المنحنى = المسار</strong>
+            <span style="font-size:11px; color:var(--olive-muted);">الطريق الكلي الذي نسلكه</span>
+          </div>
+          <div style="background:var(--bg-cream); border:1.5px solid var(--ink-dark); border-radius:8px; padding:10px; text-align:center;">
+            <div style="font-size:20px;">📍</div>
+            <strong style="font-size:13px; display:block; color:var(--accent-orange);">النقطة = الموقع</strong>
+            <span style="font-size:11px; color:var(--olive-muted);">أين نقف في هذه الثانية</span>
+          </div>
+          <div style="background:var(--bg-cream); border:2px solid var(--accent-orange); border-radius:8px; padding:10px; text-align:center;">
+            <div style="font-size:20px;">🧭</div>
+            <strong style="font-size:13px; display:block; color:var(--accent-orange);">المماس = الاتجاه</strong>
+            <span style="font-size:11px; color:var(--olive-muted);">إلى أين نتجه لحظياً</span>
+          </div>
+        </div>
+      </div>
+      <div class="retro-window-footer">
+        <span id="s2-status">TANGENT_SLOPE: 2.40 • CONTACT_POINT: OK</span>
+        <span>مفهوم التماس الهندسي</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SCENE 04: FROM SECANT TO TANGENT ==================== -->
+  <section class="scene-content" id="scene-3">
+    <div class="narration-container">
+      <h1 class="huge-title">من القاطع إلى المماس</h1>
+      <h2 class="medium-subtitle">كيف تنبثق النهاية (Limit) حين نقرّب النقطتين؟</h2>
+      <div class="doc-subtitle-card">
+        <p class="doc-subtitle-text" id="s3-sub">نبدأ بخط قاطع واصل بين نقطتين: الميل = Δy / Δx.</p>
+      </div>
+      <p class="small-hint">اضغط على زر تقريب النقطتين لمشاهدة تحوّل القاطع إلى مماس كامل (Δx → 0)</p>
+    </div>
+
+    <div class="retro-window">
+      <div class="retro-window-header">
+        <div class="window-title"><span>📐</span><span>C:\MATH\SECANT_LIMIT.EXE</span></div>
+        <div class="window-grooves"></div>
+        <div class="window-controls">
+          <span class="ctrl-btn ctrl-yellow"></span>
+          <span class="ctrl-btn ctrl-pink"></span>
+        </div>
+      </div>
+      <div class="retro-window-body">
+        <div id="graph-container-3"></div>
+
+        <!-- Delta X controls -->
+        <div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:14px; background:var(--bg-cream); padding:10px 14px; border-radius:8px; border:1.5px solid var(--olive-light); flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-family:var(--font-mono); font-size:13px; font-weight:700;">المسافة (Δx):</span>
+            <input type="range" id="secant-slider" min="0.02" max="2.0" step="0.02" value="1.4" style="accent-color:var(--accent-orange); width:130px; cursor:pointer;" oninput="onSecantSlider(this.value)">
+            <span id="secant-val" style="font-family:var(--font-mono); font-weight:800; color:var(--accent-blue); width:40px;">1.40</span>
+          </div>
+          <button class="retro-btn primary" onclick="animateSecantToZero()">
+            <span>✨ قرّب Δx نحو الصفر (Δx → 0)</span>
+          </button>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:12px; margin-top:12px; flex-wrap:wrap;">
+          <div class="formula-box">
+            <span class="formula-label">الميل المتوسط (القاطع)</span>
+            <div class="formula-math">الميل = <span style="color:var(--accent-pink);">Δy</span> / <span style="color:var(--accent-blue);">Δx</span> = <span id="s3-sec-slope">3.80</span></div>
+            <span class="formula-sub">فرق الصادات مقسوماً على فرق السينات</span>
+          </div>
+          <div class="formula-box highlight" id="s3-formula-limit">
+            <span class="formula-label">تعريف المشتق اللحظي</span>
+            <div class="formula-math">f'(x) = lim<sub>Δx→0</sub> [ f(x+Δx) - f(x) ] / Δx</div>
+            <span class="formula-sub" id="s3-limit-sub">اقترب أكثر لتتطابق النقطتان!</span>
+          </div>
+        </div>
+      </div>
+      <div class="retro-window-footer">
+        <span id="s3-status">DELTA_X: 1.40 • LIMIT_APPROACH: ACTIVE</span>
+        <span>برهان نهاية نيوتن ولايبنتز</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SCENE 05: THE DERIVATIVE ==================== -->
+  <section class="scene-content" id="scene-4">
+    <div class="narration-container">
+      <h1 class="huge-title">المُشتق وميل المماس</h1>
+      <h2 class="medium-subtitle">f(x) = x²  ⟹  f'(x) = 2x</h2>
+      <div class="doc-subtitle-card">
+        <p class="doc-subtitle-text" id="s4-sub">المشتق هو آلة تحسب ميل المماس وزاويته عند أي نقطة تختارها!</p>
+      </div>
+      <p class="small-hint">اضغط على النقاط النموذجية أدناه وشاهد دوران المماس وزاوية الميل</p>
+    </div>
+
+    <div class="retro-window">
+      <div class="retro-window-header">
+        <div class="window-title"><span>⚡</span><span>C:\MATH\DERIVATIVE_MAP.EXE</span></div>
+        <div class="window-grooves"></div>
+        <div class="window-controls">
+          <span class="ctrl-btn ctrl-yellow"></span>
+          <span class="ctrl-btn ctrl-pink"></span>
+        </div>
+      </div>
+      <div class="retro-window-body">
+        <div id="graph-container-4"></div>
+
+        <div style="display:flex; justify-content:center; gap:12px; margin-top:12px; flex-wrap:wrap;">
+          <div class="formula-box">
+            <span class="formula-label">الدالة الأصلية</span>
+            <div class="formula-math">f(x) = x²</div>
+            <span class="formula-sub">مسار القطع المكافئ</span>
+          </div>
+          <div class="formula-box highlight">
+            <span class="formula-label">دالة المشتق</span>
+            <div class="formula-math">f'(x) = 2x = <span style="color:var(--accent-orange);" id="s4-slope-math">+2.40</span></div>
+            <span class="formula-sub">الميل الفوري وزاوية الانحدار</span>
+          </div>
+        </div>
+
+        <!-- Landmarks buttons -->
+        <div style="margin-top:14px; background:var(--bg-cream); border:1.5px solid var(--olive-light); border-radius:10px; padding:12px;">
+          <div style="font-size:12px; font-weight:800; color:var(--olive-muted); margin-bottom:8px; text-align:center;">
+            اختر نقطة نموذجية لمراقبة سلوك المماس:
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px;">
+            <button class="retro-btn" onclick="setLandmark(-2)">
+              <div style="direction:ltr;"><strong>x = -2</strong></div>
+              <div style="font-size:10px; color:var(--olive-muted);">الميل = -4 (هبوط حاد)</div>
+            </button>
+            <button class="retro-btn" onclick="setLandmark(-1)">
+              <div style="direction:ltr;"><strong>x = -1</strong></div>
+              <div style="font-size:10px; color:var(--olive-muted);">الميل = -2 (هبوط معتدل)</div>
+            </button>
+            <button class="retro-btn active" onclick="setLandmark(0)" id="btn-lm-0">
+              <div style="direction:ltr;"><strong>x = 0</strong></div>
+              <div style="font-size:10px; color:var(--accent-yellow);">الميل = 0 (أفقي تماماً)</div>
+            </button>
+            <button class="retro-btn" onclick="setLandmark(1)">
+              <div style="direction:ltr;"><strong>x = 1</strong></div>
+              <div style="font-size:10px; color:var(--olive-muted);">الميل = +2 (صعود معتدل)</div>
+            </button>
+            <button class="retro-btn" onclick="setLandmark(2)">
+              <div style="direction:ltr;"><strong>x = 2</strong></div>
+              <div style="font-size:10px; color:var(--olive-muted);">الميل = +4 (صعود حاد)</div>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="retro-window-footer">
+        <span id="s4-status">SLOPE: +2.40 • ANGLE: 67.4° • MINIMUM: x=0</span>
+        <span>مفهوم النقاط الحرجة وتغيّر الإشارة</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SCENE 06: REAL EXAMPLE (CAR MOTION) ==================== -->
+  <section class="scene-content" id="scene-5">
+    <div class="narration-container">
+      <h1 class="huge-title">مثال واقعي: حركة السيارة</h1>
+      <h2 class="medium-subtitle">الموقع s(t) = t²  ⟹  السرعة اللحظية v(t) = 2t</h2>
+      <div class="doc-subtitle-card">
+        <p class="doc-subtitle-text" id="s5-sub">الموقع يخبرك أين السيارة، أما المشتق فيخبرك بسرعة تغيّر موقعها الآن!</p>
+      </div>
+      <p class="small-hint">الموقع ↓ الدالة الأصلية | السرعة ↓ مشتق الدالة</p>
+    </div>
+
+    <div class="retro-window">
+      <div class="retro-window-header">
+        <div class="window-title"><span>🚗</span><span>C:\SIMULATION\CAR_TELEMETRY.EXE</span></div>
+        <div class="window-grooves"></div>
+        <div class="window-controls">
+          <span class="ctrl-btn ctrl-yellow"></span>
+          <span class="ctrl-btn ctrl-pink"></span>
+        </div>
+      </div>
+      <div class="retro-window-body">
+        <div id="graph-container-5"></div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; margin-top:14px;">
+          <!-- Speedometer Card -->
+          <div style="background:var(--bg-cream); border:1.5px solid var(--ink-dark); border-radius:8px; padding:12px; display:flex; align-items:center; gap:14px;">
+            <div style="position:relative; width:64px; height:64px;">
+              <svg width="64" height="64" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="28" fill="none" stroke="var(--olive-light)" stroke-width="4" />
+                <circle id="speedo-arc" cx="32" cy="32" r="28" fill="none" stroke="var(--accent-orange)" stroke-width="4" stroke-dasharray="100 175" stroke-linecap="round" transform="rotate(-90 32 32)" />
+              </svg>
+              <div id="speedo-num" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px; font-weight:900;">5.0</div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--olive-muted); font-weight:700;">عداد السرعة اللحظية</div>
+              <strong style="font-size:14px; color:var(--accent-orange);" id="car-v-text">v = 5.00 م/ث</strong>
+              <div style="font-size:10px; color:var(--ink-dark);">المشتق = ميل مماس المسار</div>
+            </div>
+          </div>
+
+          <!-- Position & Time Readout -->
+          <div style="background:var(--bg-cream); border:1.5px solid var(--ink-dark); border-radius:8px; padding:12px; display:flex; flexDirection:column; justify-content:center; gap:5px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px;">
+              <span>📍 المسافة المقطوعة s(t):</span>
+              <strong style="font-family:var(--font-mono);" id="car-s-text">6.25 م</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:12px;">
+              <span>⏱ الزمن المستغرق t:</span>
+              <strong style="font-family:var(--font-mono);" id="car-t-text">2.50 ث</strong>
+            </div>
+            <div style="border-top:1px dashed var(--olive-light); padding-top:4px; display:flex; justify-content:space-between; font-size:12px; color:var(--accent-orange); font-weight:700;">
+              <span>⚡ المشتق اللحظي s'(t):</span>
+              <span style="font-family:var(--font-mono);" id="car-ds-text">5.00 م/ث</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:12px; margin-top:12px; flex-wrap:wrap;">
+          <div class="formula-box">
+            <span class="formula-label">معادلة الموقع</span>
+            <div class="formula-math">s(t) = t²</div>
+            <span class="formula-sub">أين السيارة على المسار</span>
+          </div>
+          <div class="formula-box highlight">
+            <span class="formula-label">معادلة السرعة</span>
+            <div class="formula-math">v(t) = s'(t) = 2t</div>
+            <span class="formula-sub">سرعة تغيّر موقع السيارة في تلك اللحظة</span>
+          </div>
+        </div>
+      </div>
+      <div class="retro-window-footer">
+        <span id="s5-status">SIMULATION: TIME=2.50s • VELOCITY=5.00 m/s</span>
+        <span>الارتباط الفيزيائي بين التفاضل والسرعة</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SCENE 07: INTERACTIVE EXPERIMENT ==================== -->
+  <section class="scene-content" id="scene-6">
+    <div class="narration-container">
+      <h1 class="huge-title">المختبر التفاعلي</h1>
+      <h2 class="medium-subtitle">جرّب بنفسك: تفاعل مع المنحنيات واستكشف المماس بحرية</h2>
+      <div class="doc-subtitle-card">
+        <p class="doc-subtitle-text">اسحب النقطة بالماوس أو اللمس، بدّل بين الدوال، ولاحظ تغيّر زاوية المماس الحية.</p>
+      </div>
+    </div>
+
+    <div class="retro-window">
+      <div class="retro-window-header">
+        <div class="window-title"><span>🧪</span><span>C:\MATH\PLAYGROUND_LAB.EXE</span></div>
+        <div class="window-grooves"></div>
+        <div style="display:flex; gap:6px;">
+          <button class="retro-btn active" onclick="setPresetCurve('parabola')" id="p-btn-parabola" style="padding:2px 8px; font-size:11px;">x²</button>
+          <button class="retro-btn" onclick="setPresetCurve('cubic')" id="p-btn-cubic" style="padding:2px 8px; font-size:11px;">⅓x³-x</button>
+          <button class="retro-btn" onclick="setPresetCurve('sine')" id="p-btn-sine" style="padding:2px 8px; font-size:11px;">2 sin(x)</button>
+        </div>
+      </div>
+      <div class="retro-window-body">
+        <div id="graph-container-6"></div>
+
+        <!-- Real-time Telemetry Dashboard -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:14px;">
+          <div style="background:var(--bg-cream); border:1.5px solid var(--ink-dark); border-radius:8px; padding:8px 12px; text-align:center;">
+            <span style="font-size:11px; color:var(--olive-muted); font-weight:700;">الموقع السيني (x)</span>
+            <div id="lab-x" style="font-family:var(--font-mono); font-size:17px; font-weight:900; direction:ltr;">+1.20</div>
+          </div>
+          <div style="background:var(--bg-cream); border:1.5px solid var(--ink-dark); border-radius:8px; padding:8px 12px; text-align:center;">
+            <span style="font-size:11px; color:var(--olive-muted); font-weight:700;">قيمة الدالة f(x)</span>
+            <div id="lab-y" style="font-family:var(--font-mono); font-size:17px; font-weight:900; color:var(--olive-muted); direction:ltr;">+1.44</div>
+          </div>
+          <div style="background:var(--bg-cream); border:2px solid var(--accent-orange); border-radius:8px; padding:8px 12px; text-align:center;">
+            <span style="font-size:11px; color:var(--accent-orange); font-weight:800;">قيمة المشتق f'(x)</span>
+            <div id="lab-slope" style="font-family:var(--font-mono); font-size:17px; font-weight:900; color:var(--accent-orange); direction:ltr;">+2.40</div>
+          </div>
+          <div style="background:var(--bg-cream); border:1.5px solid var(--ink-dark); border-radius:8px; padding:8px 12px; text-align:center;">
+            <span style="font-size:11px; color:var(--olive-muted); font-weight:700;">زاوية المماس (θ)</span>
+            <div id="lab-angle" style="font-family:var(--font-mono); font-size:17px; font-weight:900; direction:ltr;">+67.4°</div>
+          </div>
+        </div>
+
+        <!-- Controls toolbar -->
+        <div style="margin-top:14px; background:var(--bg-cream); border:1.5px solid var(--olive-light); border-radius:10px; padding:12px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:12px; font-weight:700;">تحريك النقطة:</span>
+            <input type="range" id="lab-slider" min="-2.4" max="2.4" step="0.02" value="1.2" style="accent-color:var(--accent-orange); cursor:pointer; width:130px;" oninput="onLabSlider(this.value)">
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <button class="retro-btn active" id="btn-toggle-tangent" onclick="toggleLabLayer('tangent')">✓ المماس</button>
+            <button class="retro-btn" id="btn-toggle-secant" onclick="toggleLabLayer('secant')">القاطع</button>
+            <button class="retro-btn active" id="btn-toggle-grid" onclick="toggleLabLayer('grid')">✓ الشبكة</button>
+            <button class="retro-btn" id="btn-toggle-scan" onclick="toggleLabScan()">▶ مسح تلقائي</button>
+          </div>
+        </div>
+      </div>
+      <div class="retro-window-footer">
+        <span>INTERACTIVE_LAB: READY • TOUCH_DRAGGING: ENABLED</span>
+        <span>مختبر التفاضل الديناميكي المفتوح</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SCENE 08: CONCLUSION ==================== -->
+  <section class="scene-content" id="scene-7">
+    <div class="retro-window" style="max-width: 800px;">
+      <div class="retro-window-header">
+        <div class="window-title"><span>📜</span><span>C:\MATH\CONCLUSION.TXT</span></div>
+        <div class="window-grooves"></div>
+        <div class="window-controls">
+          <span class="ctrl-btn ctrl-yellow"></span>
+          <span class="ctrl-btn ctrl-pink"></span>
+        </div>
+      </div>
+      <div class="retro-window-body" style="text-align: center; padding: 26px 20px;">
+        <div class="narration-container">
+          <h1 class="huge-title">فلسفة التغيّر</h1>
+          <h2 class="medium-subtitle">المشتق ليس مجرد معادلة... إنه طريقة لرؤية العالم</h2>
+          <div class="doc-subtitle-card">
+            <p class="doc-subtitle-text">منحنى واحد... لكن في كل نقطة عليه، قصة فريدة عن كيفية تغيّره.</p>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin:20px 0; flex-wrap:wrap;">
+          <div class="formula-box">
+            <span class="formula-label">الكل والمجموع</span>
+            <div class="formula-math">f(x) = x²</div>
+            <span class="formula-sub">مسار الدالة الكامل</span>
+          </div>
+          <div style="font-size:24px; color:var(--accent-orange);">➔</div>
+          <div class="formula-box highlight">
+            <span class="formula-label">اللحظة والمعدل</span>
+            <div class="formula-math">f'(x) = 2x</div>
+            <span class="formula-sub">سرعة التغيّر وميل المماس الفوري</span>
+          </div>
+        </div>
+
+        <div style="background:var(--bg-cream); border:2px solid var(--ink-dark); border-radius:10px; padding:16px 22px; margin:20px auto; max-width:620px; line-height:1.8; font-size:15px; font-weight:700;">
+          "الآن، لم نعد نحفظ المشتق كقاعدة جامدة، بل رأينا بأعيننا كيف يترجم خط المماس نبض الحركة على المنحنى في كل لحظة."
+        </div>
+
+        <div style="margin-top:24px; border-top:1.5px dashed var(--olive-light); paddingTop:18px; display:flex; justify-content:center; align-items:center; gap:20px; flex-wrap:wrap;">
+          <a href="Integrals%20%E2%80%94%20The%20Film.html" class="desktop-icon active">
+            <span class="icon-symbol">📁</span>
+            <span class="icon-label">المفهوم التالي</span>
+            <span class="icon-sub">INTEGRAL.EXE</span>
+          </a>
+          <div class="desktop-icon" onclick="jumpToScene(0)">
+            <span class="icon-symbol">↻</span>
+            <span class="icon-label">إعادة العرض</span>
+            <span class="icon-sub">REPLAY</span>
+          </div>
+          <a href="index.html" class="desktop-icon">
+            <span class="icon-symbol">🏠</span>
+            <span class="icon-label">مكتبة الأفلام</span>
+            <span class="icon-sub">ROOT</span>
+          </a>
+        </div>
+      </div>
+      <div class="retro-window-footer">
+        <span>LESSON_COMPLETE • ALL_SYSTEMS_NORMAL</span>
+        <span>نهاية العرض السينمائي</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ==========================================================================
+     BOTTOM EDUCATIONAL CHAPTER CONTROLS BAR
+     ========================================================================== -->
+<footer class="bottom-chapter-bar" role="toolbar" aria-label="شريط التحكم في الفيلم">
+  <div style="display:flex; align-items:center; gap:14px;">
+    <span class="timeline-counter" id="footer-counter">SCENE 01 / 08</span>
+    <span style="font-size:14px; font-weight:700; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="footer-title">
+      المقدمة: لغة التغيّر
+    </span>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:8px;">
+    <button class="retro-btn" onclick="prevScene()" id="btn-prev" title="المشهد السابق">
+      <span>◀</span><span>السابق</span>
+    </button>
+    <button class="retro-btn orange" onclick="togglePlayFilm()" id="btn-play" title="تشغيل / إيقاف">
+      <span id="play-icon">⏸</span><span id="play-text">إيقاف</span>
+    </button>
+    <button class="retro-btn" onclick="nextScene()" id="btn-next" title="المشهد التالي">
+      <span>التالي</span><span>▶</span>
+    </button>
+    <button class="retro-btn" onclick="jumpToScene(0)" title="إعادة من البداية">
+      <span>↻</span>
+    </button>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:10px;">
+    <button class="retro-btn" onclick="toggleSound()" id="btn-sound" title="تفعيل / كتم الصوت">
+      <span id="sound-label">🔊 صوت الرجعية</span>
+    </button>
+  </div>
+</footer>
+
+<!-- ==========================================================================
+     MATHEMATICAL & CINEMATIC RUNTIME ENGINE
+     ========================================================================== -->
+<script>
+// SCENE DEFINITIONS
+const SCENES = [
+  { id: 'scene-0', num: '01', title: 'المقدمة: لغة التغيّر', short: 'المقدمة' },
+  { id: 'scene-1', num: '02', title: 'المنحنى والدالة', short: 'المنحنى' },
+  { id: 'scene-2', num: '03', title: 'خط المماس اللحظي', short: 'المماس' },
+  { id: 'scene-3', num: '04', title: 'من القاطع إلى المماس', short: 'القاطع' },
+  { id: 'scene-4', num: '05', title: 'المشتق وميل المماس', short: 'المشتق' },
+  { id: 'scene-5', num: '06', title: 'مثال واقعي: حركة السيارة', short: 'السيارة' },
+  { id: 'scene-6', num: '07', title: 'المختبر التفاعلي الحي', short: 'المختبر' },
+  { id: 'scene-7', num: '08', title: 'الخاتمة: فلسفة التغيّر', short: 'الخاتمة' }
+];
+
+let currentScene = 0;
+let isPlaying = true;
+let soundEnabled = true;
+let currentX = 1.2;
+let secantDeltaX = 1.4;
+let audioCtx = null;
+
+// Lab Scene State
+let labCurve = 'parabola';
+let labShowTangent = true;
+let labShowSecant = false;
+let labShowGrid = true;
+let labScanning = false;
+let labScanDir = 1;
+
+// PRESET CURVES
+const CURVES = {
+  parabola: {
+    f: x => x * x,
+    df: x => 2 * x,
+    xMin: -2.6, xMax: 2.6, yMin: -0.5, yMax: 6.5
+  },
+  cubic: {
+    f: x => (x * x * x) / 3 - x,
+    df: x => x * x - 1,
+    xMin: -2.8, xMax: 2.8, yMin: -3.0, yMax: 3.0
+  },
+  sine: {
+    f: x => 2 * Math.sin(x),
+    df: x => 2 * Math.cos(x),
+    xMin: -3.5, xMax: 3.5, yMin: -2.8, yMax: 2.8
+  },
+  car: {
+    f: t => t * t,
+    df: t => 2 * t,
+    xMin: 0, xMax: 4.2, yMin: 0, yMax: 18
+  }
+};
+
+// ==========================================================================
+// WEB AUDIO RETRO SOUND SYNTHESIZER
+// ==========================================================================
+function playSound(type) {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'click') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.exponentialRampToValueAtTime(160, now + 0.04);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.linearRampToValueAtTime(0.001, now + 0.04);
+      osc.start(now);
+      osc.stop(now + 0.04);
+    } else if (type === 'chime') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.16); // G5
+      gain.gain.setValueAtTime(0.09, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    } else if (type === 'warp') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(240, now);
+      osc.frequency.exponentialRampToValueAtTime(480, now + 0.2);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    }
+  } catch (e) {}
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('sound-label').textContent = soundEnabled ? '🔊 صوت الرجعية' : '🔇 صامت';
+  if (soundEnabled) playSound('chime');
+}
+
+// ==========================================================================
+// MATHEMATICAL SVG GRAPH GENERATOR
+// ==========================================================================
+function renderGraph(opts) {
+  const {
+    containerId,
+    f,
+    df,
+    xMin,
+    xMax,
+    yMin,
+    yMax,
+    xVal,
+    showTangent = true,
+    showSecant = false,
+    secantDx = 1.0,
+    showGrid = true,
+    showCar = false,
+    onDrag = null
+  } = opts;
+
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const w = 740;
+  const h = 380;
+  const pad = { top: 25, right: 30, bottom: 35, left: 45 };
+  const plotW = w - pad.left - pad.right;
+  const plotH = h - pad.top - pad.bottom;
+
+  const mathToScrX = x => pad.left + ((x - xMin) / (xMax - xMin)) * plotW;
+  const mathToScrY = y => h - pad.bottom - ((y - yMin) / (yMax - yMin)) * plotH;
+  const scrToMathX = sx => xMin + ((sx - pad.left) / plotW) * (xMax - xMin);
+
+  const yVal = f(xVal);
+  const slope = df ? df(xVal) : (f(xVal + 1e-4) - f(xVal - 1e-4)) / 2e-4;
+  const angleRad = Math.atan(slope);
+  const angleDeg = (angleRad * 180) / Math.PI;
+
+  const pScr = { x: mathToScrX(xVal), y: mathToScrY(yVal) };
+  const originScr = { x: mathToScrX(0), y: mathToScrY(0) };
+
+  // Sample curve
+  const steps = 140;
+  let pathD = '';
+  for (let i = 0; i <= steps; i++) {
+    const x = xMin + (i / steps) * (xMax - xMin);
+    const y = f(x);
+    const sx = mathToScrX(x);
+    const sy = mathToScrY(y);
+    pathD += (i === 0 ? 'M ' : ' L ') + sx.toFixed(1) + ' ' + sy.toFixed(1);
+  }
+
+  // Tangent segment
+  const tLen = 3.6;
+  const tDx = (tLen / 2) * Math.cos(angleRad);
+  const tDy = (tLen / 2) * Math.sin(angleRad);
+  const tStart = { x: mathToScrX(xVal - tDx), y: mathToScrY(yVal - tDy) };
+  const tEnd = { x: mathToScrX(xVal + tDx), y: mathToScrY(yVal + tDy) };
+
+  // Grid lines
+  let gridMarkup = '';
+  if (showGrid) {
+    for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
+      const sx = mathToScrX(gx);
+      gridMarkup += `<line x1="${sx}" y1="${pad.top}" x2="${sx}" y2="${h - pad.bottom}" stroke="rgba(109,118,82,0.14)" stroke-width="1"/>`;
+    }
+    for (let gy = Math.ceil(yMin); gy <= Math.floor(yMax); gy++) {
+      const sy = mathToScrY(gy);
+      gridMarkup += `<line x1="${pad.left}" y1="${sy}" x2="${w - pad.right}" y2="${sy}" stroke="rgba(109,118,82,0.14)" stroke-width="1"/>`;
+    }
+  }
+
+  // Ticks & labels
+  let ticksMarkup = '';
+  for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
+    if (gx === 0) continue;
+    const sx = mathToScrX(gx);
+    ticksMarkup += `
+      <line x1="${sx}" y1="${originScr.y - 4}" x2="${sx}" y2="${originScr.y + 4}" stroke="var(--ink-dark)" stroke-width="1.2"/>
+      <text x="${sx}" y="${originScr.y + 16}" fill="var(--ink-dark)" font-size="11" font-family="var(--font-mono)" font-weight="700" text-anchor="middle">${gx}</text>
+    `;
+  }
+  for (let gy = Math.ceil(yMin); gy <= Math.floor(yMax); gy++) {
+    if (gy === 0) continue;
+    const sy = mathToScrY(gy);
+    ticksMarkup += `
+      <line x1="${originScr.x - 4}" y1="${sy}" x2="${originScr.x + 4}" y2="${sy}" stroke="var(--ink-dark)" stroke-width="1.2"/>
+      <text x="${originScr.x - 8}" y="${sy + 4}" fill="var(--ink-dark)" font-size="11" font-family="var(--font-mono)" font-weight="700" text-anchor="end">${gy}</text>
+    `;
+  }
+
+  // Secant calculations
+  let secantMarkup = '';
+  if (showSecant) {
+    const x2 = xVal + secantDx;
+    const y2 = f(x2);
+    const qScr = { x: mathToScrX(x2), y: mathToScrY(y2) };
+    const secSlope = (y2 - yVal) / secantDx;
+    const ext = 0.6;
+    const secStartX = pScr.x - (qScr.x - pScr.x) * ext;
+    const secStartY = pScr.y - (qScr.y - pScr.y) * ext;
+    const secEndX = qScr.x + (qScr.x - pScr.x) * ext;
+    const secEndY = qScr.y + (qScr.y - pScr.y) * ext;
+
+    secantMarkup = `
+      <!-- Secant triangle -->
+      <line x1="${pScr.x}" y1="${pScr.y}" x2="${qScr.x}" y2="${pScr.y}" stroke="var(--accent-blue)" stroke-width="2.2" stroke-dasharray="4 3"/>
+      <line x1="${qScr.x}" y1="${pScr.y}" x2="${qScr.x}" y2="${qScr.y}" stroke="var(--accent-pink)" stroke-width="2.2" stroke-dasharray="4 3"/>
+      <!-- Secant line -->
+      <line x1="${secStartX}" y1="${secStartY}" x2="${secEndX}" y2="${secEndY}" stroke="var(--accent-yellow)" stroke-width="2.6"/>
+      <!-- Point Q -->
+      <circle cx="${qScr.x}" cy="${qScr.y}" r="6.5" fill="var(--accent-blue)" stroke="var(--ink-dark)" stroke-width="2"/>
+      <text x="${qScr.x + 8}" y="${qScr.y - 8}" fill="var(--accent-blue)" font-family="var(--font-mono)" font-weight="bold" font-size="11">Q(x+Δx)</text>
+      <text x="${(pScr.x + qScr.x) / 2}" y="${pScr.y + 14}" fill="var(--accent-blue)" font-family="var(--font-mono)" font-weight="bold" font-size="11" text-anchor="middle">Δx=${secantDx.toFixed(2)}</text>
+      <text x="${qScr.x + 8}" y="${(pScr.y + qScr.y) / 2}" fill="var(--accent-pink)" font-family="var(--font-mono)" font-weight="bold" font-size="11">Δy=${(y2 - yVal).toFixed(2)}</text>
+    `;
+  }
+
+  // Car graphic markup
+  let carMarkup = '';
+  if (showCar) {
+    const vLen = Math.min(55, Math.max(15, Math.abs(slope) * 10));
+    carMarkup = `
+      <g transform="translate(${pScr.x}, ${pScr.y}) rotate(${-angleDeg})">
+        <rect x="-18" y="-10" width="36" height="20" rx="4" fill="var(--accent-orange)" stroke="var(--ink-dark)" stroke-width="2"/>
+        <rect x="-8" y="-7" width="16" height="14" rx="2" fill="var(--bg-paper-light)" stroke="var(--ink-dark)" stroke-width="1.5"/>
+        <circle cx="-11" cy="9" r="3.5" fill="var(--ink-dark)"/>
+        <circle cx="11" cy="9" r="3.5" fill="var(--ink-dark)"/>
+        <circle cx="-11" cy="-9" r="3.5" fill="var(--ink-dark)"/>
+        <circle cx="11" cy="-9" r="3.5" fill="var(--ink-dark)"/>
+        <!-- Velocity arrow -->
+        <line x1="18" y1="0" x2="${18 + vLen}" y2="0" stroke="var(--accent-yellow)" stroke-width="3.5" stroke-linecap="round"/>
+        <polygon points="${18 + vLen} -4, ${24 + vLen} 0, ${18 + vLen} 4" fill="var(--accent-yellow)"/>
+      </g>
+    `;
+  }
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto; display:block; background:#FAF6EC; border:2px solid var(--ink-dark); border-radius:10px; cursor:grab; touch-action:none;" id="${containerId}-svg">
+      <defs>
+        <marker id="${containerId}-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <polygon points="0 0, 7 3.5, 0 7" fill="var(--accent-orange)"/>
+        </marker>
+      </defs>
+
+      ${gridMarkup}
+
+      <!-- Coordinate Axes -->
+      <line x1="${pad.left}" y1="${originScr.y}" x2="${w - pad.right}" y2="${originScr.y}" stroke="var(--ink-dark)" stroke-width="1.8"/>
+      <line x1="${originScr.x}" y1="${h - pad.bottom}" x2="${originScr.x}" y2="${pad.top}" stroke="var(--ink-dark)" stroke-width="1.8"/>
+
+      ${ticksMarkup}
+
+      <!-- Curve Path -->
+      <path d="${pathD}" fill="none" stroke="var(--ink-dark)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+      ${secantMarkup}
+
+      <!-- Tangent Line -->
+      ${showTangent ? `
+        <line x1="${tStart.x}" y1="${tStart.y}" x2="${tEnd.x}" y2="${tEnd.y}" stroke="var(--accent-orange)" stroke-width="3.2" stroke-linecap="round" marker-end="url(#${containerId}-arrow)"/>
+      ` : ''}
+
+      <!-- Contact Point P -->
+      <circle cx="${pScr.x}" cy="${pScr.y}" r="11" fill="rgba(217, 120, 40, 0.25)"/>
+      <circle cx="${pScr.x}" cy="${pScr.y}" r="7" fill="var(--accent-orange)" stroke="var(--ink-dark)" stroke-width="2.5"/>
+
+      ${carMarkup}
+    </svg>
+  `;
+
+  // Attach drag events
+  if (onDrag) {
+    const svgEl = document.getElementById(`${containerId}-svg`);
+    let isDragging = false;
+    const pointerMoveHandler = (e) => {
+      if (!isDragging) return;
+      const rect = svgEl.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+      const svgX = clientX * (w / rect.width);
+      const newMathX = Math.max(xMin + 0.1, Math.min(xMax - 0.1, scrToMathX(svgX)));
+      onDrag(Number(newMathX.toFixed(2)));
+    };
+    svgEl.onpointerdown = (e) => {
+      isDragging = true;
+      svgEl.setPointerCapture?.(e.pointerId);
+      pointerMoveHandler(e);
+    };
+    svgEl.onpointermove = pointerMoveHandler;
+    svgEl.onpointerup = (e) => {
+      isDragging = false;
+      try { svgEl.releasePointerCapture?.(e.pointerId); } catch(err) {}
+    };
+  }
+}
+
+// ==========================================================================
+// SCENE CONTROLLERS & DATA UPDATERS
+// ==========================================================================
+function updateSceneVisuals() {
+  const curveP = CURVES.parabola;
+
+  // Scene 1: Curve
+  renderGraph({
+    containerId: 'graph-container-1',
+    f: curveP.f,
+    df: curveP.df,
+    xMin: curveP.xMin, xMax: curveP.xMax,
+    yMin: curveP.yMin, yMax: curveP.yMax,
+    xVal: currentX,
+    showTangent: false,
+    showSecant: false,
+    onDrag: (nx) => { currentX = nx; updateSceneVisuals(); }
+  });
+  document.getElementById('s1-x').textContent = `x = ${currentX > 0 ? '+' : ''}${currentX.toFixed(2)}`;
+  document.getElementById('s1-y').textContent = `y = f(x) = +${(currentX * currentX).toFixed(2)}`;
+  document.getElementById('s1-status').textContent = `COORDINATES: (${currentX.toFixed(2)}, ${(currentX * currentX).toFixed(2)}) • 60 FPS`;
+
+  // Scene 2: Tangent
+  renderGraph({
+    containerId: 'graph-container-2',
+    f: curveP.f,
+    df: curveP.df,
+    xMin: curveP.xMin, xMax: curveP.xMax,
+    yMin: curveP.yMin, yMax: curveP.yMax,
+    xVal: currentX,
+    showTangent: true,
+    showSecant: false,
+    onDrag: (nx) => { currentX = nx; updateSceneVisuals(); }
+  });
+  document.getElementById('s2-status').textContent = `TANGENT_SLOPE: ${(2 * currentX).toFixed(2)} • CONTACT_PT: (${currentX.toFixed(2)}, ${(currentX * currentX).toFixed(2)})`;
+
+  // Scene 3: Secant to Tangent
+  renderGraph({
+    containerId: 'graph-container-3',
+    f: curveP.f,
+    df: curveP.df,
+    xMin: curveP.xMin, xMax: curveP.xMax,
+    yMin: curveP.yMin, yMax: curveP.yMax,
+    xVal: currentX,
+    showTangent: secantDeltaX < 0.15,
+    showSecant: true,
+    secantDx: secantDeltaX,
+    onDrag: (nx) => { currentX = nx; updateSceneVisuals(); }
+  });
+  const secSlope = ((currentX + secantDeltaX) ** 2 - currentX ** 2) / secantDeltaX;
+  document.getElementById('s3-sec-slope').textContent = secSlope.toFixed(2);
+  document.getElementById('secant-val').textContent = secantDeltaX.toFixed(2);
+  document.getElementById('s3-status').textContent = `DELTA_X: ${secantDeltaX.toFixed(2)} • SECANT_SLOPE: ${secSlope.toFixed(2)}`;
+  const limitSub = document.getElementById('s3-limit-sub');
+  if (secantDeltaX < 0.15) {
+    limitSub.textContent = '🎯 لقد تلاشت المسافة وأصبح القاطع مماساً تماماً!';
+    document.getElementById('s3-formula-limit').classList.add('highlight');
+  } else {
+    limitSub.textContent = 'حرّك شريط Δx واقترب أكثر لتتطابق النقطتان!';
+  }
+
+  // Scene 4: Derivative Table & Landmarks
+  renderGraph({
+    containerId: 'graph-container-4',
+    f: curveP.f,
+    df: curveP.df,
+    xMin: curveP.xMin, xMax: curveP.xMax,
+    yMin: curveP.yMin, yMax: curveP.yMax,
+    xVal: currentX,
+    showTangent: true,
+    showSecant: false,
+    onDrag: (nx) => { currentX = nx; updateSceneVisuals(); }
+  });
+  const curSlope = 2 * currentX;
+  const curAngle = (Math.atan(curSlope) * 180 / Math.PI).toFixed(1);
+  document.getElementById('s4-slope-math').textContent = `${curSlope >= 0 ? '+' : ''}${curSlope.toFixed(2)}`;
+  document.getElementById('s4-status').textContent = `SLOPE: ${curSlope >= 0 ? '+' : ''}${curSlope.toFixed(2)} • ANGLE: ${curAngle}°`;
+
+  // Scene 5: Car Motion
+  const tVal = Math.max(0.4, Math.min(3.8, Math.abs(currentX) + 0.8));
+  const sVal = tVal * tVal;
+  const vVal = 2 * tVal;
+  renderGraph({
+    containerId: 'graph-container-5',
+    f: CURVES.car.f,
+    df: CURVES.car.df,
+    xMin: CURVES.car.xMin, xMax: CURVES.car.xMax,
+    yMin: CURVES.car.yMin, yMax: CURVES.car.yMax,
+    xVal: tVal,
+    showTangent: true,
+    showSecant: false,
+    showCar: true,
+    onDrag: (nt) => { currentX = nt - 0.8; updateSceneVisuals(); }
+  });
+  document.getElementById('car-s-text').textContent = `${sVal.toFixed(2)} م`;
+  document.getElementById('car-t-text').textContent = `${tVal.toFixed(2)} ث`;
+  document.getElementById('car-v-text').textContent = `v = ${vVal.toFixed(2)} م/ث`;
+  document.getElementById('car-ds-text').textContent = `${vVal.toFixed(2)} م/ث`;
+  document.getElementById('speedo-num').textContent = vVal.toFixed(1);
+  const arcDash = Math.min(175, Math.max(10, (vVal / 8) * 175));
+  document.getElementById('speedo-arc').setAttribute('stroke-dasharray', `${arcDash} 175`);
+
+  // Scene 6: Lab
+  const cLab = CURVES[labCurve] || CURVES.parabola;
+  const clampedLabX = Math.max(cLab.xMin + 0.1, Math.min(cLab.xMax - 0.1, currentX));
+  const labY = cLab.f(clampedLabX);
+  const labSlope = cLab.df(clampedLabX);
+  const labAngle = (Math.atan(labSlope) * 180 / Math.PI).toFixed(1);
+
+  renderGraph({
+    containerId: 'graph-container-6',
+    f: cLab.f,
+    df: cLab.df,
+    xMin: cLab.xMin, xMax: cLab.xMax,
+    yMin: cLab.yMin, yMax: cLab.yMax,
+    xVal: clampedLabX,
+    showTangent: labShowTangent,
+    showSecant: labShowSecant,
+    secantDx: 0.6,
+    showGrid: labShowGrid,
+    onDrag: (nx) => { currentX = nx; updateSceneVisuals(); }
+  });
+  document.getElementById('lab-x').textContent = `${clampedLabX >= 0 ? '+' : ''}${clampedLabX.toFixed(2)}`;
+  document.getElementById('lab-y').textContent = `${labY >= 0 ? '+' : ''}${labY.toFixed(2)}`;
+  document.getElementById('lab-slope').textContent = `${labSlope >= 0 ? '+' : ''}${labSlope.toFixed(2)}`;
+  document.getElementById('lab-angle').textContent = `${labAngle >= 0 ? '+' : ''}${labAngle}°`;
+  document.getElementById('lab-slider').value = clampedLabX;
+}
+
+// Landmark selection
+function setLandmark(x) {
+  playSound('click');
+  currentX = x;
+  updateSceneVisuals();
+}
+
+function onSecantSlider(val) {
+  secantDeltaX = parseFloat(val);
+  updateSceneVisuals();
+}
+
+function animateSecantToZero() {
+  playSound('chime');
+  let stepCount = 0;
+  const timer = setInterval(() => {
+    secantDeltaX *= 0.88;
+    if (secantDeltaX <= 0.05) {
+      secantDeltaX = 0.02;
+      clearInterval(timer);
+    }
+    document.getElementById('secant-slider').value = secantDeltaX;
+    updateSceneVisuals();
+    stepCount++;
+  }, 40);
+}
+
+function onLabSlider(val) {
+  currentX = parseFloat(val);
+  updateSceneVisuals();
+}
+
+function setPresetCurve(k) {
+  playSound('click');
+  labCurve = k;
+  ['parabola', 'cubic', 'sine'].forEach(id => {
+    document.getElementById(`p-btn-${id}`).classList.toggle('active', id === k);
+  });
+  currentX = 0.8;
+  updateSceneVisuals();
+}
+
+function toggleLabLayer(layer) {
+  playSound('click');
+  if (layer === 'tangent') {
+    labShowTangent = !labShowTangent;
+    document.getElementById('btn-toggle-tangent').classList.toggle('active', labShowTangent);
+    document.getElementById('btn-toggle-tangent').textContent = labShowTangent ? '✓ المماس' : 'إظهار المماس';
+  } else if (layer === 'secant') {
+    labShowSecant = !labShowSecant;
+    document.getElementById('btn-toggle-secant').classList.toggle('active', labShowSecant);
+    document.getElementById('btn-toggle-secant').textContent = labShowSecant ? '✓ القاطع' : 'إظهار القاطع';
+  } else if (layer === 'grid') {
+    labShowGrid = !labShowGrid;
+    document.getElementById('btn-toggle-grid').classList.toggle('active', labShowGrid);
+    document.getElementById('btn-toggle-grid').textContent = labShowGrid ? '✓ الشبكة' : 'إخفاء الشبكة';
+  }
+  updateSceneVisuals();
+}
+
+function toggleLabScan() {
+  playSound('click');
+  labScanning = !labScanning;
+  document.getElementById('btn-toggle-scan').textContent = labScanning ? '⏸ إيقاف المسح' : '▶ مسح تلقائي';
+}
+
+// Lab scan loop
+setInterval(() => {
+  if (labScanning && currentScene === 6) {
+    const cLab = CURVES[labCurve];
+    currentX += labScanDir * 0.035;
+    if (currentX >= cLab.xMax - 0.25) labScanDir = -1;
+    if (currentX <= cLab.xMin + 0.25) labScanDir = 1;
+    updateSceneVisuals();
+  }
+}, 30);
+
+// ==========================================================================
+// SCENE NAVIGATION & CINEMATIC TIMELINE
+// ==========================================================================
+function renderScrubber() {
+  const container = document.getElementById('scrubber-list');
+  container.innerHTML = SCENES.map((s, idx) => `
+    <button class="scrubber-node ${idx === currentScene ? 'active' : ''} ${idx < currentScene ? 'passed' : ''}" onclick="jumpToScene(${idx})">
+      <span class="scrubber-dot"></span>
+      <span>${s.short}</span>
+    </button>
+    ${idx < SCENES.length - 1 ? '<div class="scrubber-connector"></div>' : ''}
+  `).join('');
+}
+
+function jumpToScene(idx) {
+  playSound('warp');
+  currentScene = Math.max(0, Math.min(SCENES.length - 1, idx));
+
+  // Toggle active scene element
+  SCENES.forEach((s, i) => {
+    const el = document.getElementById(s.id);
+    if (el) el.classList.toggle('active', i === currentScene);
+    const dIcon = document.getElementById(`d-icon-${i}`);
+    if (dIcon) dIcon.classList.toggle('active', i === currentScene);
+  });
+
+  // Update controls text
+  document.getElementById('footer-counter').textContent = `SCENE ${String(currentScene + 1).padStart(2, '0')} / 08`;
+  document.getElementById('footer-title').textContent = SCENES[currentScene].title;
+  document.getElementById('btn-prev').disabled = currentScene === 0;
+  document.getElementById('btn-next').disabled = currentScene === SCENES.length - 1;
+
+  renderScrubber();
+  updateSceneVisuals();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextScene() {
+  if (currentScene < SCENES.length - 1) jumpToScene(currentScene + 1);
+}
+
+function prevScene() {
+  if (currentScene > 0) jumpToScene(currentScene - 1);
+}
+
+function togglePlayFilm() {
+  playSound('click');
+  isPlaying = !isPlaying;
+  document.getElementById('play-icon').textContent = isPlaying ? '⏸' : '▶';
+  document.getElementById('play-text').textContent = isPlaying ? 'إيقاف' : 'تشغيل الفيلم';
+}
+
+// Automatic video playback progression
+let autoPlaySec = 0;
+setInterval(() => {
+  if (isPlaying) {
+    autoPlaySec += 0.2;
+    // Animate point in current scene gently
+    if (currentScene === 1 || currentScene === 2 || currentScene === 4 || currentScene === 5) {
+      currentX = 1.4 * Math.sin(autoPlaySec * 0.9);
+      updateSceneVisuals();
+    }
+    // Advance scene every 11 seconds of film watch
+    if (autoPlaySec >= 11) {
+      autoPlaySec = 0;
+      if (currentScene < SCENES.length - 1) {
+        jumpToScene(currentScene + 1);
+      } else {
+        isPlaying = false;
+        document.getElementById('play-icon').textContent = '▶';
+        document.getElementById('play-text').textContent = 'تشغيل الفيلم';
+      }
+    }
+  }
+}, 200);
+
+// Keyboard arrow navigation
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft' || e.key === 'PageDown') nextScene();
+  else if (e.key === 'ArrowRight' || e.key === 'PageUp') prevScene();
+  else if (e.key === ' ') { e.preventDefault(); togglePlayFilm(); }
+});
+
+// Initialize on page load
+renderScrubber();
+jumpToScene(0);
+</script>
+
+</body>
+</html>

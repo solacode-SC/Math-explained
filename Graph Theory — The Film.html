@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Graph Theory — The Film</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0d0f2e;--ink:#f3f0ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#1c1e55,var(--bg) 70%);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#cap{position:absolute;left:5vw;right:5vw;bottom:84px;text-align:center;font-weight:600;font-size:clamp(17px,3vw,30px);line-height:1.3;text-shadow:0 2px 18px #0d0f2e}
+#bar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:14px;align-items:center;padding:14px 18px}
+button{background:rgba(243,240,255,.14);color:var(--ink);border:0;border-radius:999px;padding:8px 20px;font:inherit;font-weight:600;cursor:pointer;min-width:84px}
+button:hover{background:rgba(243,240,255,.24)}
+button:focus-visible,#tr:focus-visible{outline:2px solid #ffd166;outline-offset:3px}
+#tr{flex:1;height:10px;border-radius:9px;background:rgba(243,240,255,.14);cursor:pointer;overflow:hidden}
+#fl{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6b57,#ffd166,#2ee6c5)}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="cap" aria-live="polite"></div>
+<div id="bar"><button id="b">Pause</button><div id="tr" tabindex="0" role="slider" aria-label="Progress"><i id="fl"></i></div></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),cap=document.getElementById('cap'),bt=document.getElementById('b'),tr=document.getElementById('tr'),fl=document.getElementById('fl');
+const cA='255,107,87',cB='46,230,197',cG='255,209,102',cW='243,240,255',FF="'Bricolage Grotesque',system-ui,sans-serif";
+let sw,sh,U,dpr;
+function rs(){dpr=window.devicePixelRatio||1;sw=innerWidth;sh=innerHeight;cv.width=sw*dpr;cv.height=sh*dpr;U=Math.min(sw/100,sh/75)}
+addEventListener('resize',rs);rs();
+const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),ez=v=>{v=cl(v);return v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2},seg=(t,a,b)=>ez((t-a)/(b-a)),w=(t,a,b)=>seg(t,a,a+.5)*(1-seg(t,b-.5,b)),rg=(c,a)=>`rgba(${c},${a})`;
+const C=(a,b,r,f,s,l=.4)=>{x.beginPath();x.arc(a,b,Math.max(r,0),0,7);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=l;x.stroke()}};
+const ln=(a,b,c,d,col,l=.5)=>{x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.strokeStyle=col;x.lineWidth=l;x.stroke()};
+const tx=(s,a,b,z,col,al=1)=>{if(al<=.01)return;x.save();x.scale(1/U,1/U);x.globalAlpha=Math.min(1,al);x.fillStyle=col;x.font=`800 ${z*U}px ${FF}`;x.textAlign='center';x.textBaseline='middle';x.fillText(s,a*U,b*U);x.restore()};
+const dash=(f)=>{x.setLineDash([1,1]);f();x.setLineDash([])};
+
+function drawNode(name,px,py,col=cG,rad=3.4,al=1){
+  C(px,py,rad,rg('13,15,46',.95*al),rg(col,al),.8);
+  tx(name,px,py,rad*1.05,rg(col,al),al);
+}
+
+function drawEdge(x1,y1,x2,y2,col=rg(cW,.3),lw=.5){
+  ln(x1,y1,x2,y2,col,lw);
+}
+
+function drawWeight(wText,x1,y1,x2,y2,col=cG,al=1){
+  const mx=(x1+x2)/2,my=(y1+y2)/2;
+  C(mx,my,2.2,rg('13,15,46',.92*al),rg(col,.7*al),.35);
+  tx(wText,mx,my,2.3,rg(col,al),al);
+}
+
+function s0(t){
+  // Title Scene: constellation of nodes with pulsing signal pulses
+  const k=seg(t,.2,2.5);
+  const nodes=[[-20,-10],[-15,12],[5,-14],[12,8],[22,-4]];
+  const edges=[[0,1],[0,2],[1,3],[2,3],[2,4],[3,4]];
+
+  edges.forEach(([i,j])=>{
+    drawEdge(nodes[i][0]*k,nodes[i][1]*k,nodes[j][0]*k,nodes[j][1]*k,rg(cW,.2*k),.5);
+  });
+  // Pulsing packet
+  const pEdge=edges[Math.floor(t*2)%edges.length];
+  const frac=(t*2)%1;
+  const px=nodes[pEdge[0]][0]+(nodes[pEdge[1]][0]-nodes[pEdge[0]][0])*frac;
+  const py=nodes[pEdge[0]][1]+(nodes[pEdge[1]][1]-nodes[pEdge[0]][1])*frac;
+  C(px*k,py*k,1.5,rg(cG,k));
+
+  nodes.forEach(([nx,ny],idx)=>{
+    drawNode(String.fromCharCode(65+idx),nx*k,ny*k,[cG,cB,cA][idx%3],3*k,k);
+  });
+
+  tx('Graph Theory',0,-12,7.5,rg(cW,1),seg(t,1.8,3));
+  tx('Euler paths and shortest paths',0,-5,3.6,rg(cG,1),seg(t,3,4.2));
+  tx('the mathematics of connections and optimal routes',0,1,3,rg(cB,1),seg(t,4.2,5.4));
+}
+
+function s1(t){
+  // Graph Definitions: Vertices, Edges, and Degrees
+  const k=seg(t,.2,1);
+  tx('What is a Graph?  G = (V, E)',0,-24,4.4,rg(cG,1),k);
+
+  // 4 Nodes: A(-18, 0), B(0, -14), C(0, 14), D(18, 0)
+  const A=[-18,0],B=[0,-14],C=[0,14],D=[18,0];
+  const allEdges=[[A,B],[B,D],[D,C],[C,A],[A,D]];
+
+  allEdges.forEach(([p1,p2])=>{
+    drawEdge(p1[0],p1[1],p2[0],p2[1],rg(cW,.35*k),.7);
+  });
+
+  drawNode('A',A[0],A[1],cA,3.6,k);
+  drawNode('B',B[0],B[1],cB,3.6,k);
+  drawNode('C',C[0],C[1],cB,3.6,k);
+  drawNode('D',D[0],D[1],cA,3.6,k);
+
+  // Degree callouts
+  const pDeg=seg(t,2.5,4);
+  if(pDeg>0){
+    tx('deg(A) = 3 (ODD)',A[0]-10,A[1],2.7,rg(cA,1),pDeg);
+    tx('deg(B) = 2 (EVEN)',B[0],B[1]-5,2.7,rg(cB,1),pDeg);
+    tx('deg(C) = 2 (EVEN)',C[0],C[1]+5,2.7,rg(cB,1),pDeg);
+    tx('deg(D) = 3 (ODD)',D[0]+10,D[1],2.7,rg(cA,1),pDeg);
+  }
+
+  tx('Degree = count of edges touching each node',0,23,3.4,rg(cW,.9),seg(t,4,5.5));
+}
+
+function s2(t){
+  // Example A: Euler Path (Traverse Every Edge Exactly Once!)
+  const k=seg(t,.2,1);
+  tx('Euler Path: Traverse Every Edge Exactly Once',0,-24,4.2,rg(cG,1),k);
+
+  // 4 Nodes: A(-18, 0), B(0, -14), C(0, 14), D(18, 0)
+  // Edges to traverse in order:
+  // 1: A -> B
+  // 2: B -> D
+  // 3: D -> C
+  // 4: C -> A
+  // 5: A -> D
+  const A=[-18,0],B=[0,-14],C=[0,14],D=[18,0];
+  const eulerSeq=[[A,B],[B,D],[D,C],[C,A],[A,D]];
+
+  // Base faint edges
+  eulerSeq.forEach(([p1,p2])=>{
+    drawEdge(p1[0],p1[1],p2[0],p2[1],rg(cW,.2),.5);
+  });
+
+  // Animated traversal progress through the 5 edges
+  // t from 1 to 13s -> 5 steps (each ~2.4s)
+  const travFrac=cl((t-1)/11.5)*5; // 0 to 5
+  const stepIdx=Math.floor(travFrac);
+  const stepSub=travFrac-stepIdx;
+
+  for(let i=0;i<stepIdx;i++){
+    const e=eulerSeq[i];
+    ln(e[0][0],e[0][1],e[1][0],e[1][1],rg(cG,1),1.3);
+  }
+  let curX=A[0],curY=A[1];
+  if(stepIdx<5){
+    const e=eulerSeq[stepIdx];
+    const nx=e[0][0]+(e[1][0]-e[0][0])*stepSub;
+    const ny=e[0][1]+(e[1][1]-e[0][1])*stepSub;
+    ln(e[0][0],e[0][1],nx,ny,rg(cG,1),1.3);
+    curX=nx;curY=ny;
+  } else {
+    curX=D[0];curY=D[1];
+  }
+
+  drawNode('A',A[0],A[1],cA,3.6,k);
+  drawNode('B',B[0],B[1],cB,3.6,k);
+  drawNode('C',C[0],C[1],cB,3.6,k);
+  drawNode('D',D[0],D[1],cA,3.6,k);
+
+  // Glowing moving traveller
+  C(curX,curY,2,rg(cG,1),rg(cW,1),.8);
+
+  // Euler Theorem condition
+  x.fillStyle=rg('13,15,46',.88);x.strokeStyle=rg(cG,.8);x.lineWidth=.4;
+  x.fillRect(-34,16,68,9);x.strokeRect(-34,16,68,9);
+  tx('EULER′S THEOREM: Exactly TWO odd nodes (A and D)',0,19,2.8,rg(cG,1));
+  tx('Must start at odd node A and finish at odd node D!',0,22.5,2.6,rg(cW,.9));
+}
+
+function s3(t){
+  // Example B: Shortest Path Problem (Dijkstra)
+  // Route 1: A -> B -> D with weights 4 and 7 (total = 11)
+  // Route 2: A -> C -> D with weights 3 and 2 (total = 5)
+  const k=seg(t,.2,1);
+  tx('Shortest Path: Route 1 vs Route 2 to Destination D',0,-24,4.2,rg(cG,1),k);
+
+  const A=[-22,0],B=[0,-13],C=[0,13],D=[22,0];
+
+  // Draw edges with default styling
+  drawEdge(A[0],A[1],B[0],B[1],rg(cW,.35),.7);
+  drawEdge(B[0],B[1],D[0],D[1],rg(cW,.35),.7);
+  drawEdge(A[0],A[1],C[0],C[1],rg(cW,.35),.7);
+  drawEdge(C[0],C[1],D[0],D[1],rg(cW,.35),.7);
+
+  // Edge weights display
+  drawWeight('4',A[0],A[1],B[0],B[1],cA);
+  drawWeight('7',B[0],B[1],D[0],D[1],cA);
+  drawWeight('3',A[0],A[1],C[0],C[1],cB);
+  drawWeight('2',C[0],C[1],D[0],D[1],cB);
+
+  // Animate wavefront search:
+  // Bottom route finishes at cost 5; Top route finishes at cost 11
+  const simTime=cl((t-1)/10)*11; // 0 to 11
+
+  // Top route: A -> B finishes at t=4, B -> D finishes at t=11
+  if(simTime<=4){
+    const frac=simTime/4;
+    ln(A[0],A[1],A[0]+(B[0]-A[0])*frac,A[1]+(B[1]-A[1])*frac,rg(cA,.9),1.2);
+  } else {
+    ln(A[0],A[1],B[0],B[1],rg(cA,.9),1.2);
+    const frac=Math.min(1,(simTime-4)/7);
+    ln(B[0],B[1],B[0]+(D[0]-B[0])*frac,B[1]+(D[1]-B[1])*frac,rg(cA,.9),1.2);
+  }
+
+  // Bottom route: A -> C finishes at t=3, C -> D finishes at t=5
+  if(simTime<=3){
+    const frac=simTime/3;
+    ln(A[0],A[1],A[0]+(C[0]-A[0])*frac,A[1]+(C[1]-A[1])*frac,rg(cB,.9),1.2);
+  } else {
+    ln(A[0],A[1],C[0],C[1],rg(cB,.9),1.2);
+    const frac=Math.min(1,(simTime-3)/2);
+    ln(C[0],C[1],C[0]+(D[0]-C[0])*frac,C[1]+(D[1]-C[1])*frac,rg(cB,.9),1.2);
+  }
+
+  // Highlight winning route in glowing gold once reached (simTime >= 5)
+  if(simTime>=5){
+    ln(A[0],A[1],C[0],C[1],rg(cG,1),1.6);
+    ln(C[0],C[1],D[0],D[1],rg(cG,1),1.6);
+  }
+
+  drawNode('A',A[0],A[1],cG,3.8,k);
+  drawNode('B',B[0],B[1],cA,3.6,k);
+  drawNode('C',C[0],C[1],cB,3.6,k);
+  drawNode('D',D[0],D[1],cG,3.8,k);
+
+  // HUD Scoreboard
+  x.fillStyle=rg('13,15,46',.9);x.strokeStyle=rg(cG,.8);x.lineWidth=.4;
+  x.fillRect(-34,-18,68,8.5);x.strokeRect(-34,-18,68,8.5);
+  tx('Route 1 (A → B → D): 4 + 7 = 11',-16,-14,2.9,rg(cA,1));
+  tx('Route 2 (A → C → D): 3 + 2 = 5  ★ WINNER!',16,-14,2.9,rg(cG,1));
+
+  tx('Shortest path is NOT fewer edges — it is minimal total weight!',0,23,3.4,rg(cG,1),seg(t,5.5,7));
+}
+
+function s4(t){
+  // Comparing the Paradigms: Euler vs Dijkstra
+  const k=seg(t,.2,1);
+  tx('Two Fundamental Graph Problems',0,-24,4.4,rg(cG,1),k);
+
+  // Panel 1: Euler Path
+  x.fillStyle=rg('13,15,46',.85);x.strokeStyle=rg(cB,.8);x.lineWidth=.4;
+  x.fillRect(-34,-16,32,32);x.strokeRect(-34,-16,32,32);
+  tx('EULER PATH',-18,-11,2.8,rg(cB,1));
+  tx('Traverse Every Edge',-18,-6,2.7,rg(cW,1));
+  tx('• Focus: Full connection coverage',-18,-1,2.3,rg(cW,.8));
+  tx('• Condition: 0 or 2 odd nodes',-18,3.5,2.3,rg(cW,.8));
+  tx('• Must not retrace any road',-18,8,2.3,rg(cW,.8));
+  tx('Snow plows, DNA sequencing',-18,12.5,2.4,rg(cB,1));
+
+  // Panel 2: Shortest Path
+  x.fillStyle=rg('13,15,46',.85);x.strokeStyle=rg(cG,.8);x.lineWidth=.4;
+  x.fillRect(2,-16,32,32);x.strokeRect(2,-16,32,32);
+  tx('SHORTEST PATH',18,-11,2.8,rg(cG,1));
+  tx('Connect Two Nodes',18,-6,2.7,rg(cW,1));
+  tx('• Focus: Minimal cost / latency',18,-1,2.3,rg(cW,.8));
+  tx('• Condition: Evaluates edge weights',18,3.5,2.3,rg(cW,.8));
+  tx('• May skip most edges entirely',18,8,2.3,rg(cW,.8));
+  tx('GPS routing, internet packets',18,12.5,2.4,rg(cG,1));
+}
+
+function s5(t){
+  // Global Complex Mesh Routing
+  const k=seg(t,.2,1);
+  tx('Global Routing in Complex Networks',0,-24,4.4,rg(cG,1),k);
+
+  // Multi-node mesh
+  const pts=[];
+  for(let i=0;i<12;i++){
+    const an=i/12*6.283;
+    pts.push([Math.cos(an)*24*(i%2?1:.6),Math.sin(an)*15*(i%2?1:.7)]);
+  }
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const d=Math.hypot(pts[i][0]-pts[j][0],pts[i][1]-pts[j][1]);
+      if(d<16)drawEdge(pts[i][0],pts[i][1],pts[j][0],pts[j][1],rg(cW,.15),.3);
+    }
+  }
+
+  // Active highlighted path
+  const bestPath=[0,1,3,5,7,9];
+  for(let i=0;i<bestPath.length-1;i++){
+    const p1=pts[bestPath[i]],p2=pts[bestPath[i+1]];
+    ln(p1[0],p1[1],p2[0],p2[1],rg(cG,.85),1.2);
+  }
+
+  pts.forEach(([px,py],idx)=>{
+    C(px,py,1.6,rg([cG,cB,cA][idx%3],1));
+  });
+
+  tx('Dijkstra and A* algorithms power modern GPS and internet routing',0,23,3.3,rg(cW,1),seg(t,3,4.5));
+}
+
+function s6(t){
+  // Finale
+  for(let i=0;i<16;i++){
+    const an=i/16*6.283+t*.3;
+    const px=22*Math.cos(an),py=13*Math.sin(an);
+    drawEdge(0,0,px,py,rg(i%2?cB:cG,.3),.5);
+    C(px,py,1.5,rg(cG,1));
+  }
+  C(0,0,2.5,rg(cA,1));
+  tx('Graph Theory',0,-6,10,rg(cW,1),seg(t,.5,1.5));
+  tx('mapping the invisible web that connects all things',0,4,3.6,rg(cG,1),seg(t,1.5,2.5));
+}
+
+const D=[6.5,10,15,15,11,9,7],F=[s0,s1,s2,s3,s4,s5,s6],TOT=D.reduce((a,b)=>a+b),N=D.length-1;
+const CP=[
+[[0,'How do you navigate a world made of connections?'],[3,'Graph theory studies vertices and edges — the architecture of networks.']],
+[[0,'A graph connects nodes through edges.'],[3.5,'The degree of a node is the number of roads meeting at that point.'],[7,'Euler discovered that degree counts determine if a network can be traversed.']],
+[[0,'An Euler path must cross every single edge exactly once without repeating.'],[4,'Theorem: An Euler path exists if and only if exactly 2 nodes have odd degree.'],[8.5,'Watch the path begin at odd node A, visit every road, and finish at odd node D!']],
+[[0,'Now consider the shortest path problem: traveling from A to D.'],[4,'Route 1 (A → B → D) has distances 4 + 7 = 11.'],[8.5,'Route 2 (A → C → D) has distances 3 + 2 = 5.'],[12,'Route 2 wins easily: 5 is less than 11!']],
+[[0,'Euler paths cover every connection (street cleaning, DNA assembly).'],[4,'Shortest paths find the optimal route between two points (GPS, Internet packets).']],
+[[0,'Modern routing algorithms evaluate millions of paths per second.'],[3.5,'From Google Maps to fiber-optic cables spanning oceans.']],
+[[0,'Graph theory turns complex networks into elegant mathematical truth.'],[3,'The geometry of connection.']]];
+
+let T=0,pl=true,L=performance.now(),key='';
+function sync(){bt.textContent=T>=TOT?'Replay':pl?'Pause':'Play'}
+bt.onclick=()=>{if(T>=TOT){T=0;pl=true}else pl=!pl;sync()};
+addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();bt.click()}});
+tr.onclick=e=>{const r=tr.getBoundingClientRect();T=cl((e.clientX-r.left)/r.width)*TOT*.999;pl=true;sync()};
+function loop(n){const dt=Math.min(.1,(n-L)/1000);L=n;
+if(pl){T=Math.min(TOT,T+dt);if(T>=TOT){pl=false;sync()}}
+let i=0,s=0;while(i<N&&T>=s+D[i]){s+=D[i];i++}const t=T-s;
+x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,sw,sh);
+for(let j=0;j<50;j++){x.fillStyle=`rgba(${cW},.13)`;x.beginPath();x.arc(sw*(.5+.5*Math.sin(j*7.3+n*.0008*(1+j%3*.3))),sh*(.5+.5*Math.sin(j*3.1+n*.0011)),1+j%3,0,7);x.fill()}
+x.translate(sw/2,sh*.42);x.scale(U,U);F[i](t);x.setTransform(1,0,0,1,0,0);
+let c=CP[i][0];for(const q of CP[i])if(q[0]<=t)c=q;const k=i+c[1];
+if(k!==key){key=k;cap.textContent=c[1];cap.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:600,easing:'ease-out'})}
+fl.style.width=T/TOT*100+'%';requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script></body></html>
+

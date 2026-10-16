@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Math Explained — The Films</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0d0f2e;
+  --bg-card:rgba(28, 30, 85, 0.45);
+  --border:rgba(243, 240, 255, 0.12);
+  --ink:#f3f0ff;
+  --cA:#ff6b57;
+  --cB:#2ee6c5;
+  --cG:#ffd166;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  background:radial-gradient(ellipse at 50% 20%, #1c1e55 0%, var(--bg) 75%);
+  color:var(--ink);
+  font-family:'Bricolage Grotesque',system-ui,sans-serif;
+  padding:40px 24px 80px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+header{
+  text-align:center;
+  max-width:800px;
+  margin-bottom:48px;
+}
+.badge-top{
+  display:inline-block;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  padding:6px 14px;
+  border-radius:999px;
+  background:rgba(255,209,102,0.15);
+  color:var(--cG);
+  border:1px solid rgba(255,209,102,0.3);
+  margin-bottom:16px;
+}
+h1{
+  font-size:clamp(32px, 5.5vw, 56px);
+  font-weight:800;
+  line-height:1.1;
+  background:linear-gradient(135deg, #fff 30%, var(--cG) 70%, var(--cB));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:14px;
+}
+p.subtitle{
+  font-size:clamp(16px, 2.2vw, 20px);
+  color:rgba(243,240,255,0.75);
+  line-height:1.5;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));
+  gap:24px;
+  width:100%;
+  max-width:1200px;
+}
+.card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:26px;
+  backdrop-filter:blur(12px);
+  transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  text-decoration:none;
+  color:inherit;
+  position:relative;
+  overflow:hidden;
+}
+.card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(255,209,102,0.45);
+  box-shadow:0 14px 34px rgba(0,0,0,0.4), 0 0 24px rgba(255,209,102,0.12);
+}
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:14px;
+}
+.card-num{
+  font-size:12px;
+  font-weight:800;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(243,240,255,0.1);
+  color:rgba(243,240,255,0.8);
+}
+.card-tag{
+  font-size:12px;
+  font-weight:700;
+  padding:4px 10px;
+  border-radius:999px;
+}
+.tag-calculus{background:rgba(255,107,87,0.2);color:var(--cA);border:1px solid rgba(255,107,87,0.35)}
+.tag-algebra{background:rgba(46,230,197,0.2);color:var(--cB);border:1px solid rgba(46,230,197,0.35)}
+.tag-prob{background:rgba(255,209,102,0.2);color:var(--cG);border:1px solid rgba(255,209,102,0.35)}
+.tag-discrete{background:rgba(180,140,255,0.2);color:#c4a4ff;border:1px solid rgba(180,140,255,0.35)}
+.tag-trig{background:rgba(46,230,197,0.2);color:var(--cB);border:1px solid rgba(46,230,197,0.4)}
+.tag-retro{background:rgba(232,201,74,0.2);color:#ffd166;border:1px solid rgba(232,201,74,0.4)}
+
+h2{
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:8px;
+  color:var(--ink);
+}
+p.card-desc{
+  font-size:14px;
+  line-height:1.55;
+  color:rgba(243,240,255,0.7);
+  margin-bottom:20px;
+}
+.card-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding-top:16px;
+  border-top:1px solid rgba(243,240,255,0.08);
+}
+.card-duration{
+  font-size:13px;
+  font-weight:600;
+  color:rgba(243,240,255,0.5);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.play-btn{
+  background:rgba(243,240,255,0.15);
+  color:var(--ink);
+  font-weight:700;
+  font-size:13px;
+  padding:8px 18px;
+  border-radius:999px;
+  transition:background .2s, color .2s;
+}
+.card:hover .play-btn{
+  background:linear-gradient(90deg, var(--cA), var(--cG), var(--cB));
+  color:#0d0f2e;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge-top">Interactive Mathematical Cinema</div>
+  <h1>Math Explained — The Films</h1>
+  <p class="subtitle">A suite of interactive, real-time canvas animations revealing mathematical intuition through kinetic geometry, dynamic calculus, and synchronized visual proofs.</p>
+</header>
+
+<main class="grid">
+
+  <!-- 1. Derivatives -->
+  <a class="card" href="Derivatives%20%E2%80%94%20The%20Film.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">FILM 01</span>
+        <span class="card-tag tag-calculus">CALCULUS</span>
+      </div>
+      <h2>Derivatives</h2>
+      <p class="card-desc">A tangent line rotating along a parabola f(x) = x², demonstrating instantaneous slope, the secant-to-tangent limit, telemetry, and critical extrema.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~69s Runtime</span>
+      <span class="play-btn">Watch Film</span>
+    </div>
+  </a>
+
+  <!-- 1B. Derivatives — Retro Edition -->
+  <a class="card" href="Derivatives%20%E2%80%94%20Retro%20Edition.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">SPECIAL</span>
+        <span class="card-tag tag-retro">RETRO 90s LAB</span>
+      </div>
+      <h2>المُشتق — Retro Desktop Edition</h2>
+      <p class="card-desc">تجربة سينمائية تفاعلية بصرية: خط المماس يتحرك على المنحنى، إثبات نهاية القاطع Δx→0، السرعة اللحظية للسيارة، ومختبر تفاعلي حي بتصميم ريترو 90s Mac عريق.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~85s Film & Lab</span>
+      <span class="play-btn">Watch • مشاهدة</span>
+    </div>
+  </a>
+
+  <!-- 2. Integrals -->
+  <a class="card" href="Integrals%20%E2%80%94%20The%20Film.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">FILM 02</span>
+        <span class="card-tag tag-calculus">CALCULUS</span>
+      </div>
+      <h2>Integrals</h2>
+      <p class="card-desc">Riemann rectangles becoming continuous area under f(x) = x² from 0 to 2. Follow the convergence from 4 to 10, 50, and 200 rectangles toward 8/3 ≈ 2.667.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~71s Runtime</span>
+      <span class="play-btn">Watch Film</span>
+    </div>
+  </a>
+
+  <!-- 3. Complex Numbers -->
+  <a class="card" href="Complex%20Numbers%20%E2%80%94%20The%20Film.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">FILM 03</span>
+        <span class="card-tag tag-algebra">COMPLEX ANALYSIS</span>
+      </div>
+      <h2>Complex Numbers</h2>
+      <p class="card-desc">Multiplication as 2D rotation and scaling in the Argand plane. See why i² = −1 is a 180° flip, multiply z = 1 + i by i, and explore polar angle addition.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~70s Runtime</span>
+      <span class="play-btn">Watch Film</span>
+    </div>
+  </a>
+
+  <!-- 4. Linear Algebra -->
+  <a class="card" href="Linear%20Algebra%20%E2%80%94%20The%20Film.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">FILM 04</span>
+        <span class="card-tag tag-algebra">LINEAR ALGEBRA</span>
+      </div>
+      <h2>Linear Algebra</h2>
+      <p class="card-desc">Matrices transforming 2D space. Discover why most vectors tilt while eigenvectors along invariant axes satisfy Av = λv without rotating.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~74s Runtime</span>
+      <span class="play-btn">Watch Film</span>
+    </div>
+  </a>
+
+  <!-- 5. Probability -->
+  <a class="card" href="Probability%20%E2%80%94%20The%20Film.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">FILM 05</span>
+        <span class="card-tag tag-prob">PROBABILITY</span>
+      </div>
+      <h2>Probability</h2>
+      <p class="card-desc">The Law of Large Numbers converging coin tosses from 10 to 10,000 flips, and Bayes' Theorem demystifying the 15.4% medical test paradox.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~74s Runtime</span>
+      <span class="play-btn">Watch Film</span>
+    </div>
+  </a>
+
+  <!-- 6. Fourier Series -->
+  <a class="card" href="Fourier%20Series%20%E2%80%94%20The%20Film.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">FILM 06</span>
+        <span class="card-tag tag-calculus">HARMONIC ANALYSIS</span>
+      </div>
+      <h2>Fourier Series</h2>
+      <p class="card-desc">Rotating circles combining tip-to-tail to draw a crisp square wave and 2D complex star contours, revealing Gibbs phenomenon ringing.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~72s Runtime</span>
+      <span class="play-btn">Watch Film</span>
+    </div>
+  </a>
+
+  <!-- 7. Graph Theory -->
+  <a class="card" href="Graph%20Theory%20%E2%80%94%20The%20Film.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">FILM 07</span>
+        <span class="card-tag tag-discrete">DISCRETE MATH</span>
+      </div>
+      <h2>Graph Theory</h2>
+      <p class="card-desc">Euler paths traversing every edge once via odd degree nodes, and shortest path routing discovering why cost 5 beats cost 11.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~74s Runtime</span>
+      <span class="play-btn">Watch Film</span>
+    </div>
+  </a>
+
+  <!-- 8. Limits & Continuity (Original) -->
+  <a class="card" href="Limits%20%26%20Continuity%20%E2%80%94%20The%20Film.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">FILM 08</span>
+        <span class="card-tag tag-calculus">FOUNDATIONS</span>
+      </div>
+      <h2>Limits & Continuity</h2>
+      <p class="card-desc">The formal epsilon-delta definition of limits, shrinking tolerance bands around L, and the boundary between continuity and jump discontinuities.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~54s Runtime</span>
+      <span class="play-btn">Watch Film</span>
+    </div>
+  </a>
+
+  <!-- 9. Set Theory (Original) -->
+  <a class="card" href="Set%20Theory%20%E2%80%94%20The%20Film.html">
+    <div>
+      <div class="card-header">
+        <span class="card-num">FILM 09</span>
+        <span class="card-tag tag-discrete">FOUNDATIONS</span>
+      </div>
+      <h2>Set Theory</h2>
+      <p class="card-desc">The foundational language of mathematics: elements, subsets, unions, intersections, complements, power sets, and Cantor's infinities.</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~72s Runtime</span>
+      <span class="play-btn">Watch Film</span>
+    </div>
+  </a>
+
+  <!-- 10. Trigonometry & The Unit Circle (Featuring Nano Banana) -->
+  <a class="card" href="Trigonometry%20%E2%80%94%20The%20Film.html" style="border-color: rgba(46, 230, 197, 0.45); box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 0 25px rgba(46, 230, 197, 0.15);">
+    <div>
+      <div class="card-header">
+        <span class="card-num" style="background: rgba(46, 230, 197, 0.2); color: var(--cB); border: 1px solid rgba(46, 230, 197, 0.4);">FILM 10 • NEW</span>
+        <span class="card-tag tag-trig">TRIGONOMETRY</span>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <h2>Trigonometry & The Unit Circle</h2>
+        <img src="assets/nano_banana.jpg" onerror="this.src='nano_banana.jpg'" alt="Nano Banana" style="width:38px; height:38px; border-radius:50%; border:2px solid var(--cB); object-fit:cover; box-shadow:0 0 12px rgba(46,230,197,0.5);" title="Guided by Nano Banana">
+      </div>
+      <p class="card-desc">The spinning radius R = 1, projections cos(θ) & sin(θ), Pythagorean identity proof, unwinding rotation into continuous waves, and the tangent escape to infinity. Hosted by Nano Banana!</p>
+    </div>
+    <div class="card-footer">
+      <span class="card-duration">▶ ~76s • Fullscreen Cinema</span>
+      <span class="play-btn" style="background: linear-gradient(90deg, var(--cB), var(--cG)); color: #0d0f2e;">Watch Film 🍌</span>
+    </div>
+  </a>
+
+</main>
+
+</body>
+</html>
+

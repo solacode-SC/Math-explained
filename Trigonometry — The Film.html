@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trigonometry & The Unit Circle — The Film</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0d0f2e;
+  --bg-gradient: radial-gradient(ellipse at 50% 40%, #1c1e55 0%, #0d0f2e 72%);
+  --ink: #f3f0ff;
+  --cA: #ff6b57; /* Coral - Sine */
+  --cB: #2ee6c5; /* Cyan - Tangent & Nano Laser */
+  --cG: #ffd166; /* Amber/Gold - Cosine & Unit Circle */
+  --cP: #b48cff; /* Purple - Phase / Harmonics */
+  --cW: #f3f0ff; /* Soft lavender white */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  background-image: var(--bg-gradient);
+  color: var(--ink);
+  font-family: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  position: relative;
+}
+
+/* Master Cinema Canvas */
+#c {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+/* Cinematic Video Overlay HUD */
+.video-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 28px;
+}
+
+/* Top Header Bar */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: auto;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(243, 240, 255, 0.08);
+  backdrop-filter: blur(12px);
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(243, 240, 255, 0.14);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cB);
+  box-shadow: 0 0 10px var(--cB);
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+
+.top-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.hud-btn {
+  background: rgba(243, 240, 255, 0.12);
+  color: var(--ink);
+  border: 1px solid rgba(243, 240, 255, 0.18);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  pointer-events: auto;
+}
+
+.hud-btn:hover {
+  background: rgba(243, 240, 255, 0.22);
+  transform: translateY(-1px);
+  border-color: rgba(255, 209, 102, 0.5);
+}
+
+.hud-btn:active {
+  transform: translateY(1px);
+}
+
+/* Telemetry HUD Panel */
+.telemetry-card {
+  position: absolute;
+  top: 72px;
+  left: 28px;
+  background: rgba(13, 15, 46, 0.78);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(243, 240, 255, 0.14);
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: rgba(243, 240, 255, 0.85);
+  pointer-events: auto;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  min-width: 210px;
+  transition: opacity 0.3s;
+}
+
+.telemetry-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+
+.telemetry-label {
+  color: rgba(243, 240, 255, 0.5);
+}
+
+.val-theta { color: var(--cB); font-weight: 700; }
+.val-cos { color: var(--cG); font-weight: 700; }
+.val-sin { color: var(--cA); font-weight: 700; }
+.val-tan { color: var(--cP); font-weight: 700; }
+
+/* Subtitle Caption in Center-Bottom */
+#cap-box {
+  position: absolute;
+  left: 5vw;
+  right: 5vw;
+  bottom: 96px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 12;
+}
+
+#cap {
+  display: inline-block;
+  background: rgba(13, 15, 46, 0.86);
+  border: 1px solid rgba(243, 240, 255, 0.18);
+  border-radius: 999px;
+  padding: 10px 26px;
+  font-weight: 700;
+  font-size: clamp(16px, 2.2vw, 24px);
+  line-height: 1.35;
+  color: var(--ink);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
+  text-shadow: 0 2px 14px rgba(13, 15, 46, 0.9);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Nano Banana Host Widget */
+#nano-host {
+  position: absolute;
+  right: 28px;
+  bottom: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: auto;
+  z-index: 15;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nano-bubble {
+  background: rgba(20, 23, 66, 0.92);
+  border: 1.5px solid var(--cB);
+  border-radius: 16px 16px 4px 16px;
+  padding: 10px 16px;
+  max-width: 280px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ink);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(46, 230, 197, 0.25);
+  backdrop-filter: blur(16px);
+  position: relative;
+  animation: bubblePop 0.4s ease;
+}
+
+@keyframes bubblePop {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.nano-bubble-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--cB);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nano-avatar-wrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, var(--cG), var(--cB));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 24px rgba(46, 230, 197, 0.4);
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: floatAvatar 4s ease-in-out infinite;
+}
+
+.nano-avatar-wrapper:hover {
+  transform: scale(1.08) translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 34px rgba(46, 230, 197, 0.7);
+}
+
+@keyframes floatAvatar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+.nano-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  background: #0d0f2e;
+}
+
+.nano-badge-label {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0d0f2e;
+  border: 1px solid var(--cB);
+  color: var(--cB);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Bottom Transport Video Bar */
+.bottom-transport {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: linear-gradient(to top, rgba(13, 15, 46, 0.95) 0%, rgba(13, 15, 46, 0.7) 70%, transparent 100%);
+  padding: 12px 28px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+/* Scrubbable Video Progress Track */
+.timeline-container {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.timecode {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(243, 240, 255, 0.75);
+  min-width: 95px;
+}
+
+.track-rail {
+  position: relative;
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(243, 240, 255, 0.16);
+  cursor: pointer;
+  overflow: visible;
+  transition: height 0.15s ease;
+}
+
+.track-rail:hover {
+  height: 12px;
+}
+
+.track-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cA) 0%, var(--cG) 50%, var(--cB) 100%);
+  position: relative;
+  box-shadow: 0 0 12px rgba(46, 230, 197, 0.5);
+}
+
+.track-fill::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.track-rail:hover .track-fill::after {
+  opacity: 1;
+}
+
+/* Controls Row */
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.play-toggle-btn {
+  background: linear-gradient(135deg, var(--cB), #20b89b);
+  color: #0d0f2e;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 22px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(46, 230, 197, 0.35);
+  transition: all 0.2s ease;
+}
+
+.play-toggle-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 6px 20px rgba(46, 230, 197, 0.55);
+}
+
+.icon-btn {
+  background: rgba(243, 240, 255, 0.1);
+  color: var(--ink);
+  border: 1px solid rgba(243, 240, 255, 0.15);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: rgba(243, 240, 255, 0.22);
+  border-color: rgba(255, 209, 102, 0.4);
+}
+
+.chapter-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(243, 240, 255, 0.65);
+  margin-left: 6px;
+}
+
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.speed-select {
+  background: rgba(243, 240, 255, 0.1);
+  color: var(--ink);
+  border: 1px solid rgba(243, 240, 255, 0.18);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+
+.speed-select:hover {
+  background: rgba(243, 240, 255, 0.2);
+}
+
+/* Tooltip on timeline hover */
+#time-tooltip {
+  position: absolute;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: rgba(13, 15, 46, 0.92);
+  border: 1px solid rgba(243, 240, 255, 0.2);
+  color: #fff;
+  padding: 3px 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  border-radius: 6px;
+  pointer-events: none;
+  display: none;
+  white-space: nowrap;
+}
+</style>
+</head>
+<body>
+
+<!-- Master Fullscreen Canvas -->
+<canvas id="c"></canvas>
+
+<!-- Video HUD Overlay -->
+<div class="video-hud">
+  
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="brand-badge">
+      <span class="brand-dot"></span>
+      <span>FILM 10 • THE UNIT CIRCLE & TRIGONOMETRY</span>
+    </div>
+    
+    <div class="top-actions">
+      <a href="index.html" class="hud-btn" style="text-decoration: none;">
+        <span>🏠</span>
+        <span>Cinema Gallery</span>
+      </a>
+      <button class="hud-btn" id="btn-sound" onclick="toggleAudio()" title="Sound Synthesizer">
+        <span id="sound-icon">🔊</span>
+        <span id="sound-text">Audio Tone</span>
+      </button>
+      <button class="hud-btn" id="btn-fullscreen" onclick="toggleFullscreen()" title="Fullscreen Video">
+        <span>⛶</span>
+        <span>Fullscreen</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Live Mathematical Telemetry -->
+  <aside class="telemetry-card" id="telemetry">
+    <div style="font-weight:800; color:rgba(243,240,255,0.9); margin-bottom:6px; border-bottom:1px solid rgba(243,240,255,0.12); padding-bottom:4px; display:flex; justify-content:space-between;">
+      <span>LIVE TELEMETRY</span>
+      <span style="color:var(--cG);">UNIT R = 1</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">Angle θ (rad):</span>
+      <span class="val-theta" id="tel-theta">0.000 rad</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">Angle θ (deg):</span>
+      <span class="val-theta" id="tel-deg">0.0°</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">Cosine (x):</span>
+      <span class="val-cos" id="tel-cos">1.000</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">Sine (y):</span>
+      <span class="val-sin" id="tel-sin">0.000</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">Tangent (y/x):</span>
+      <span class="val-tan" id="tel-tan">0.000</span>
+    </div>
+    <div class="telemetry-row" style="margin-top:6px; padding-top:4px; border-top:1px dashed rgba(243,240,255,0.1);">
+      <span class="telemetry-label">x² + y²:</span>
+      <span style="color:var(--cB); font-weight:700;" id="tel-pyth">1.000</span>
+    </div>
+  </aside>
+
+  <!-- Subtitle Bar -->
+  <div id="cap-box">
+    <div id="cap" aria-live="polite">Trigonometry — The Geometry of Cycles</div>
+  </div>
+
+  <!-- Animated Character Guide: Nano Banana -->
+  <aside id="nano-host">
+    <div class="nano-bubble" id="nano-bubble">
+      <div class="nano-bubble-title">
+        <span>🍌 NANO BANANA</span>
+        <span style="opacity:0.5;">• SCI-GUIDE</span>
+      </div>
+      <p id="nano-speech">Welcome to the cosmos of rotation! A single point moving on a circle of radius 1 generates all of trigonometry.</p>
+    </div>
+    
+    <div class="nano-avatar-wrapper" onclick="toggleNanoBubble()" title="Nano Banana • Click to toggle notes">
+      <img src="assets/nano_banana.jpg" onerror="this.src='nano_banana.jpg'" alt="Nano Banana Teacher" class="nano-avatar-img">
+      <span class="nano-badge-label">NANO LAB</span>
+    </div>
+  </aside>
+
+  <!-- Video Transport Bar -->
+  <footer class="bottom-transport">
+    
+    <!-- Timeline Scrubber -->
+    <div class="timeline-container">
+      <span class="timecode" id="time-display">00:00 / 01:16</span>
+      
+      <div class="track-rail" id="track-rail" role="slider" aria-label="Timeline Scrubber" tabindex="0">
+        <div class="track-fill" id="track-fill"></div>
+        <div id="time-tooltip">00:00</div>
+      </div>
+    </div>
+
+    <!-- Controls Row -->
+    <div class="controls-row">
+      <div class="left-controls">
+        <button class="play-toggle-btn" id="play-btn" onclick="togglePlay()">
+          <span id="play-icon">⏸</span>
+          <span id="play-text">Pause</span>
+        </button>
+
+        <button class="icon-btn" onclick="skip(-10)" title="Back 10s">⏪</button>
+        <button class="icon-btn" onclick="skip(10)" title="Forward 10s">⏩</button>
+        <button class="icon-btn" onclick="replayFilm()" title="Replay">🔄</button>
+
+        <span class="chapter-badge" id="chapter-label">SCENE 01 / 07: The Unit Circle</span>
+      </div>
+
+      <div class="right-controls">
+        <label for="speed-ctrl" style="font-size:12px; color:rgba(243,240,255,0.6);">Speed:</label>
+        <select id="speed-ctrl" class="speed-select" onchange="setPlaybackRate(this.value)">
+          <option value="0.75">0.75x</option>
+          <option value="1.0" selected>1.0x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2.0">2.0x</option>
+        </select>
+      </div>
+    </div>
+
+  </footer>
+
+</div>
+
+<script>
+/* ==========================================================================
+   TRIGONOMETRY — THE FILM: 60FPS CINEMATIC MATHEMATICS ENGINE
+   Featuring Nano Banana Sci-Guide
+   ========================================================================== */
+
+const cv = document.getElementById('c'),
+      ctx = cv.getContext('2d'),
+      cap = document.getElementById('cap'),
+      playBtn = document.getElementById('play-btn'),
+      playIcon = document.getElementById('play-icon'),
+      playText = document.getElementById('play-text'),
+      trackRail = document.getElementById('track-rail'),
+      trackFill = document.getElementById('track-fill'),
+      timeDisplay = document.getElementById('time-display'),
+      timeTooltip = document.getElementById('time-tooltip'),
+      chapterLabel = document.getElementById('chapter-label'),
+      nanoSpeech = document.getElementById('nano-speech'),
+      nanoBubble = document.getElementById('nano-bubble');
+
+// Telemetry fields
+const telTheta = document.getElementById('tel-theta'),
+      telDeg = document.getElementById('tel-deg'),
+      telCos = document.getElementById('tel-cos'),
+      telSin = document.getElementById('tel-sin'),
+      telTan = document.getElementById('tel-tan'),
+      telPyth = document.getElementById('tel-pyth');
+
+// Color constants
+const cA = '255, 107, 87',   // Coral - Sine
+      cB = '46, 230, 197',   // Cyan - Tangent & Laser
+      cG = '255, 209, 102',  // Amber - Cosine
+      cP = '180, 140, 255',  // Purple
+      cW = '243, 240, 255',  // Lavender White
+      FF = "'Bricolage Grotesque', system-ui, sans-serif",
+      FM = "'JetBrains Mono', monospace";
+
+let sw, sh, U, dpr;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  sw = window.innerWidth;
+  sh = window.innerHeight;
+  cv.width = sw * dpr;
+  cv.height = sh * dpr;
+  // Responsive unit scale
+  U = Math.min(sw / 100, sh / 75);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Easing utilities
+const clamp = (v, min = 0, max = 1) => Math.min(max, Math.max(min, v));
+const easeInOut = v => { v = clamp(v); return v < 0.5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2; };
+const seg = (t, a, b) => easeInOut((t - a) / (b - a));
+const windowBlend = (t, a, b) => seg(t, a, a + 0.6) * (1 - seg(t, b - 0.6, b));
+const rgba = (col, al) => `rgba(${col}, ${al})`;
+
+// Canvas drawing helpers
+const circle = (cx, cy, r, fill, stroke, lw = 0.4) => {
+  ctx.beginPath();
+  ctx.arc(cx, cy, Math.max(r, 0), 0, Math.PI * 2);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+};
+
+const line = (x1, y1, x2, y2, col, lw = 0.5) => {
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = col;
+  ctx.lineWidth = lw;
+  ctx.stroke();
+};
+
+const text = (str, xPos, yPos, sz, col, al = 1, align = 'center', font = FF) => {
+  if (al <= 0.01) return;
+  ctx.save();
+  ctx.scale(1 / U, 1 / U);
+  ctx.globalAlpha = Math.min(1, al);
+  ctx.fillStyle = col;
+  ctx.font = `800 ${sz * U}px ${font}`;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(str, xPos * U, yPos * U);
+  ctx.restore();
+};
+
+const dashed = (fn) => {
+  ctx.setLineDash([1.2, 1.2]);
+  fn();
+  ctx.setLineDash([]);
+};
+
+/* ==========================================================================
+   WEB AUDIO GENERATIVE TONE SYNTHESIZER
+   ========================================================================== */
+let audioCtx = null;
+let soundEnabled = true;
+let synthOsc = null;
+let synthGain = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+      synthOsc = audioCtx.createOscillator();
+      synthGain = audioCtx.createGain();
+      synthOsc.type = 'sine';
+      synthOsc.frequency.setValueAtTime(220, audioCtx.currentTime);
+      synthGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      synthOsc.connect(synthGain);
+      synthGain.connect(audioCtx.destination);
+      synthOsc.start();
+    }
+  }
+}
+
+function updateAudioPitch(freq, gainVal) {
+  if (!soundEnabled || !audioCtx || !synthOsc) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const now = audioCtx.currentTime;
+  synthOsc.frequency.setTargetAtTime(freq, now, 0.05);
+  synthGain.gain.setTargetAtTime(gainVal, now, 0.08);
+}
+
+function toggleAudio() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
+  document.getElementById('sound-text').textContent = soundEnabled ? 'Audio Tone' : 'Muted';
+  if (!soundEnabled && synthGain && audioCtx) {
+    synthGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  }
+}
+
+/* ==========================================================================
+   SCENE DEFINITIONS & CINEMATIC SCRIPT
+   Duration: 76 seconds total
+   ========================================================================== */
+const SCENE_DURATIONS = [9.5, 12, 13.5, 12, 11, 10, 8]; // Total = 76s
+const TOTAL_DURATION = SCENE_DURATIONS.reduce((a, b) => a + b, 0);
+
+const CHAPTER_TITLES = [
+  "SCENE 01 / 07: The Unit Circle & Radians",
+  "SCENE 02 / 07: Sine & Cosine Projections",
+  "SCENE 03 / 07: Unwinding Rotation into Waves",
+  "SCENE 04 / 07: The Quarter-Turn Phase Shift",
+  "SCENE 05 / 07: The Tangent Rocket to Infinity",
+  "SCENE 06 / 07: Harmonic Resonance & Superposition",
+  "SCENE 07 / 07: Intuition Unlocked & Finale"
+];
+
+const CAPTIONS = [
+  // Scene 0: Unit circle
+  [[0, 'A single point moving along a circle of radius 1 births all of trigonometry.'],
+   [4.5, 'The angle θ swept in radians is the actual distance traveled along the perimeter.']],
+  // Scene 1: Orthogonal Projections
+  [[0, 'Drop perpendicular lines from the rotating point to each coordinate axis.'],
+   [3.5, 'Cosine is the horizontal shadow (x); Sine is the vertical altitude (y).'],
+   [7.5, 'Pythagoras holds at every single angle: cos²θ + sin²θ is ALWAYS 1.']],
+  // Scene 2: Unwinding into waves
+  [[0, 'What happens if we stretch circular rotation across passing time?'],
+   [4.0, 'The vertical pulse of the point unrolls into a pure, continuous Sine wave.'],
+   [8.5, 'Rotation in two dimensions is vibration in one dimension.']],
+  // Scene 3: Phase shift
+  [[0, 'Cosine runs right alongside Sine, leading it by exactly a quarter turn (π/2 = 90°).'],
+   [4.5, 'When Sine reaches its peak of 1, its slope is zero — exactly where Cosine crosses zero!'],
+   [8.5, 'The derivative of Sine is Cosine: the shadow predicts the velocity.']],
+  // Scene 4: Tangent to infinity
+  [[0, 'Extend the radius line until it pierces the vertical tangent pole at x = 1.'],
+   [4.0, 'This height is the Tangent: tan(θ) = sin(θ) / cos(θ), the slope of the beam.'],
+   [7.5, 'As θ approaches 90° (vertical), the tangent height rockets to positive infinity!']],
+  // Scene 5: Harmonics
+  [[0, 'In nature, simple sine waves stack tip-to-tail to forge complex timbre and harmony.'],
+   [4.0, 'Adding multiples sin(θ) + sin(2θ)/2 + sin(3θ)/3 shapes musical overtones and light.'],
+   [7.0, 'From radio broadcast signals to ocean waves: reality vibrates in sines.']],
+  // Scene 6: Finale
+  [[0, 'Trigonometry is not a dry table of triangles — it is the geometry of cycles.'],
+   [3.8, 'Every turn, wave, orbit, and vibration in the universe dances to this circle.']]
+];
+
+const NANO_INSIGHTS = [
+  "Look at that radius arm sweep! In a unit circle of R=1, the arc length equals angle θ in radians.",
+  "Notice how Cosine shrinks to zero as Sine reaches peak +1.0! cos²θ + sin²θ = 1 at all times.",
+  "Watch my laser beam unroll the height onto the timeline! A rolling wheel makes a living wave.",
+  "Cosine is just Sine that woke up 90 degrees early! They dance in perfect 90° quadrature.",
+  "As the ray gets vertical, Cosine hits zero, so dividing by zero shoots Tangent straight to infinity!",
+  "When you stack multiple frequencies together, you build Fourier harmonics and real acoustics!",
+  "Intuition unlocked! You now understand the kinetic heartbeat of rotation and wave mechanics."
+];
+
+/* ==========================================================================
+   SCENE RENDERERS (Canvas 2D, coordinate scaled by U)
+   ========================================================================== */
+
+// Coordinate origin at center (0, 0)
+const R_UNIT = 16; // Unit circle radius on screen
+
+function drawUnitGrid(al = 1, showLabels = true) {
+  dashed(() => {
+    // Axes
+    line(-36, 0, 36, 0, rgba(cW, 0.25 * al), 0.35);
+    line(0, -26, 0, 26, rgba(cW, 0.25 * al), 0.35);
+  });
+  if (showLabels) {
+    text('x', 37.5, 0, 2.4, rgba(cW, 0.6 * al), al);
+    text('y', 0, -27.5, 2.4, rgba(cW, 0.6 * al), al);
+    text('0', -1.8, 1.8, 2.2, rgba(cW, 0.4 * al), al);
+    text('1', R_UNIT, 2.2, 2.2, rgba(cW, 0.6 * al), al);
+    text('-1', -R_UNIT, 2.2, 2.2, rgba(cW, 0.6 * al), al);
+    text('1', -2.2, -R_UNIT, 2.2, rgba(cW, 0.6 * al), al);
+    text('-1', -2.2, R_UNIT, 2.2, rgba(cW, 0.6 * al), al);
+  }
+}
+
+// Scene 0: The Spinning Wheel of Radians & Unit Circle
+function renderScene0(t) {
+  const introFade = seg(t, 0.2, 1.8);
+  drawUnitGrid(introFade);
+
+  // Unit circle glow
+  circle(0, 0, R_UNIT, null, rgba(cG, 0.7 * introFade), 0.7);
+  circle(0, 0, R_UNIT, rgba(cG, 0.04 * introFade), null);
+
+  // Angle theta rotates
+  const theta = (t * 0.9) % (Math.PI * 2);
+  const px = R_UNIT * Math.cos(theta);
+  const py = -R_UNIT * Math.sin(theta); // Screen Y is inverted
+
+  // Radius vector
+  line(0, 0, px, py, rgba(cB, 0.9), 0.8);
+  circle(px, py, 1.3, rgba(cB, 1), '#fff', 0.5);
+
+  // Radian Arc along circle
+  ctx.beginPath();
+  ctx.arc(0, 0, R_UNIT, 0, -theta, true);
+  ctx.strokeStyle = rgba(cB, 0.9);
+  ctx.lineWidth = 1.3;
+  ctx.stroke();
+
+  // Angle arc near center
+  ctx.beginPath();
+  ctx.arc(0, 0, 4.5, 0, -theta, true);
+  ctx.strokeStyle = rgba(cG, 0.9);
+  ctx.lineWidth = 0.6;
+  ctx.stroke();
+  text('θ', 3.5 * Math.cos(-theta / 2), 3.5 * Math.sin(-theta / 2), 2.6, rgba(cG, 1));
+
+  // Big Cinematic Title
+  const titleA = windowBlend(t, 0.5, 6.5);
+  text('Trigonometry', 0, -14, 6.8, rgba(cW, 1), titleA);
+  text('The Unit Circle & Kinetic Angles', 0, -8, 3.4, rgba(cG, 1), titleA);
+  text('Radius = 1 • Distance along circumference = Angle θ', 0, 19, 2.6, rgba(cB, 1), titleA);
+
+  updateTelemetry(theta);
+}
+
+// Scene 1: The Orthogonal Shadows — Sine & Cosine + Pythagoras
+function renderScene1(t) {
+  const al = seg(t, 0.2, 1.2);
+  drawUnitGrid(al);
+
+  // Circle
+  circle(0, 0, R_UNIT, rgba(cG, 0.03), rgba(cG, 0.5), 0.6);
+
+  // Continuous sweep angle
+  const theta = 0.4 + (t * 0.75) % (Math.PI * 2);
+  const px = R_UNIT * Math.cos(theta);
+  const py = -R_UNIT * Math.sin(theta);
+
+  // Right Triangle vertices: (0, 0) -> (px, 0) -> (px, py) -> (0, 0)
+  // Shaded triangle area
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(px, 0);
+  ctx.lineTo(px, py);
+  ctx.closePath();
+  ctx.fillStyle = rgba(cB, 0.12);
+  ctx.fill();
+
+  // Horizontal Leg: Cosine (Amber)
+  line(0, 0, px, 0, rgba(cG, 1), 1.2);
+  // Vertical Leg: Sine (Coral)
+  line(px, 0, px, py, rgba(cA, 1), 1.2);
+  // Hypotenuse: Radius = 1 (Lavender)
+  line(0, 0, px, py, rgba(cW, 0.9), 0.8);
+
+  // Point P
+  circle(px, py, 1.4, rgba(cW, 1), rgba(cB, 1), 0.6);
+  text(`P (cos θ, sin θ)`, px + (px >= 0 ? 5.5 : -5.5), py - 2.5, 2.6, rgba(cW, 1));
+
+  // Cosine and Sine labels
+  text(`cos θ = ${(Math.cos(theta)).toFixed(2)}`, px / 2, 2.8, 2.8, rgba(cG, 1));
+  text(`sin θ = ${(Math.sin(theta)).toFixed(2)}`, px + (px >= 0 ? 4 : -4), py / 2, 2.8, rgba(cA, 1));
+  text('R = 1', px / 2 - 2, py / 2 - 2, 2.4, rgba(cW, 0.8));
+
+  // Right angle indicator
+  const sz = 1.6;
+  const sx = px > 0 ? -sz : sz;
+  const sy = py > 0 ? -sz : sz;
+  line(px, 0, px, sy, rgba(cW, 0.6), 0.4);
+  line(px, sy, px + sx, sy, rgba(cW, 0.6), 0.4);
+
+  // Pythagorean banner
+  const pythAlpha = seg(t, 4, 6);
+  if (pythAlpha > 0) {
+    ctx.fillStyle = rgba('13, 15, 46', 0.85 * pythAlpha);
+    ctx.strokeStyle = rgba(cG, 0.7 * pythAlpha);
+    ctx.lineWidth = 0.5;
+    ctx.fillRect(-20, 18, 40, 8);
+    ctx.strokeRect(-20, 18, 40, 8);
+
+    text('PYTHAGOREAN IDENTITY', 0, 20.2, 2.2, rgba(cG, pythAlpha));
+    text('cos²(θ) + sin²(θ) = 1.000', 0, 23.5, 3.2, rgba(cB, pythAlpha));
+  }
+
+  updateTelemetry(theta);
+}
+
+// Scene 2: Unwinding into a Continuous Wave
+function renderScene2(t) {
+  // Shift unit circle to the left
+  const cx = -24;
+  const cy = 0;
+  const rSmall = 12;
+
+  // Grid around left circle
+  dashed(() => {
+    line(cx - 15, cy, cx + 15, cy, rgba(cW, 0.2), 0.3);
+    line(cx, cy - 15, cx, cy + 15, cy, rgba(cW, 0.2), 0.3);
+  });
+  circle(cx, cy, rSmall, rgba(cG, 0.04), rgba(cG, 0.6), 0.6);
+
+  // Wave origin axis on right
+  const waveX0 = -6;
+  const waveX1 = 36;
+  dashed(() => {
+    line(waveX0, 0, waveX1, 0, rgba(cW, 0.3), 0.3);
+  });
+  text('Angle θ (time →)', waveX1 - 2, 2.5, 2.2, rgba(cW, 0.5));
+  text('+1', waveX0 - 2, -rSmall, 2.0, rgba(cA, 0.7));
+  text('0', waveX0 - 2, 0, 2.0, rgba(cW, 0.5));
+  text('-1', waveX0 - 2, rSmall, 2.0, rgba(cA, 0.7));
+
+  // Current rotating angle
+  const theta = (t * 1.3);
+  const px = cx + rSmall * Math.cos(theta);
+  const py = cy - rSmall * Math.sin(theta);
+
+  // Radius line on circle
+  line(cx, cy, px, py, rgba(cB, 0.9), 0.7);
+  circle(px, py, 1.2, rgba(cA, 1));
+
+  // Projecting Laser Beam connecting circle to wave head
+  const waveHeadX = Math.min(waveX0 + ((theta * 4) % (waveX1 - waveX0)), waveX1);
+  ctx.save();
+  ctx.setLineDash([0.8, 0.8]);
+  line(px, py, waveHeadX, py, rgba(cA, 0.8), 0.5);
+  ctx.restore();
+
+  // Trace the Sine Wave
+  ctx.beginPath();
+  let first = true;
+  for (let xPos = waveX0; xPos <= waveX1; xPos += 0.5) {
+    const thSample = theta - (waveHeadX - xPos) / 4;
+    const yVal = cy - rSmall * Math.sin(thSample);
+    if (first) { ctx.moveTo(xPos, yVal); first = false; }
+    else { ctx.lineTo(xPos, yVal); }
+  }
+  ctx.strokeStyle = rgba(cA, 0.95);
+  ctx.lineWidth = 1.0;
+  ctx.stroke();
+
+  // Glowing point on wave head
+  circle(waveHeadX, py, 1.4, rgba(cW, 1), rgba(cA, 1), 0.6);
+
+  text('f(θ) = sin(θ)', waveX0 + 10, -rSmall - 3, 3.2, rgba(cA, 1));
+  text('Continuous vertical harmonic pulse', waveX0 + 10, rSmall + 4, 2.4, rgba(cG, 1));
+
+  updateTelemetry(theta);
+}
+
+// Scene 3: The Phase Shift — Sine vs Cosine
+function renderScene3(t) {
+  const waveX0 = -32;
+  const waveX1 = 34;
+  const amp = 11;
+
+  // Center timeline axis
+  dashed(() => {
+    line(waveX0, 0, waveX1, 0, rgba(cW, 0.25), 0.35);
+  });
+
+  // Ticks at pi multiples
+  const tickSpacing = 14;
+  for (let k = 0; k <= 4; k++) {
+    const txPos = waveX0 + 4 + k * tickSpacing;
+    dashed(() => line(txPos, -amp - 2, txPos, amp + 2, rgba(cW, 0.12), 0.25));
+    const label = k === 0 ? '0' : k === 1 ? 'π/2' : k === 2 ? 'π' : k === 3 ? '3π/2' : '2π';
+    text(label, txPos, amp + 4, 2.2, rgba(cW, 0.6));
+  }
+
+  const shift = t * 1.1;
+
+  // Draw Sine Wave (Coral)
+  ctx.beginPath();
+  for (let xPos = waveX0; xPos <= waveX1; xPos += 0.6) {
+    const angle = (xPos - waveX0) / 14 * Math.PI + shift;
+    const yVal = -amp * Math.sin(angle);
+    if (xPos === waveX0) ctx.moveTo(xPos, yVal);
+    else ctx.lineTo(xPos, yVal);
+  }
+  ctx.strokeStyle = rgba(cA, 0.9);
+  ctx.lineWidth = 1.1;
+  ctx.stroke();
+
+  // Draw Cosine Wave (Amber/Gold)
+  ctx.beginPath();
+  for (let xPos = waveX0; xPos <= waveX1; xPos += 0.6) {
+    const angle = (xPos - waveX0) / 14 * Math.PI + shift;
+    const yVal = -amp * Math.cos(angle);
+    if (xPos === waveX0) ctx.moveTo(xPos, yVal);
+    else ctx.lineTo(xPos, yVal);
+  }
+  ctx.strokeStyle = rgba(cG, 0.9);
+  ctx.lineWidth = 1.1;
+  ctx.stroke();
+
+  // Legends
+  text('— Sine: y = sin(θ)', -16, -amp - 5, 3.2, rgba(cA, 1));
+  text('— Cosine: y = cos(θ)', 16, -amp - 5, 3.2, rgba(cG, 1));
+
+  // Phase indicator
+  const calloutA = seg(t, 2, 4);
+  if (calloutA > 0) {
+    ctx.fillStyle = rgba('13, 15, 46', 0.85 * calloutA);
+    ctx.strokeStyle = rgba(cB, 0.7 * calloutA);
+    ctx.lineWidth = 0.5;
+    ctx.fillRect(-18, -2, 36, 12);
+    ctx.strokeRect(-18, -2, 36, 12);
+
+    text('QUARTER-TURN PHASE OFFSET', 0, 1.5, 2.2, rgba(cB, calloutA));
+    text('cos(θ) = sin(θ + π/2)', 0, 5.0, 3.0, rgba(cW, calloutA));
+    text('When Sine peaks at 1.0, its rate of change (Cosine) is 0', 0, 8.2, 2.0, rgba(cG, calloutA));
+  }
+
+  updateTelemetry(shift);
+}
+
+// Scene 4: The Tangent Rocket to Infinity
+function renderScene4(t) {
+  drawUnitGrid(1);
+
+  // Unit circle
+  circle(0, 0, R_UNIT, rgba(cG, 0.04), rgba(cG, 0.5), 0.6);
+
+  // Vertical Tangent Line at x = 1 (on screen x = R_UNIT)
+  const tanX = R_UNIT;
+  line(tanX, -28, tanX, 28, rgba(cP, 0.8), 0.7);
+  text('x = 1 (Tangent Pole)', tanX + 7, -26, 2.2, rgba(cP, 0.8));
+
+  // Angle theta sweeps towards pi/2 (approaching vertical)
+  // Oscillation between -1.2 rad (-70 deg) and +1.45 rad (+83 deg)
+  const sweep = Math.sin(t * 0.85);
+  const theta = 0.95 * sweep; // reaches steep angles
+  const px = R_UNIT * Math.cos(theta);
+  const py = -R_UNIT * Math.sin(theta);
+
+  // Radius vector extended to hit tangent pole at height tan(theta)
+  const tanY = -R_UNIT * Math.tan(theta);
+
+  // Ray from origin through point P all the way to tangent pole
+  line(0, 0, px, py, rgba(cB, 0.9), 0.8);
+  circle(px, py, 1.3, rgba(cB, 1));
+
+  // Extended ray to tangent pole
+  dashed(() => {
+    line(px, py, tanX, Math.max(-28, Math.min(28, tanY)), rgba(cB, 0.6), 0.4);
+  });
+
+  // Tangent point on pole
+  if (Math.abs(tanY) <= 28) {
+    circle(tanX, tanY, 1.4, rgba(cP, 1), '#fff', 0.5);
+    text(`tan θ = ${(Math.tan(theta)).toFixed(2)}`, tanX + 7, tanY, 2.6, rgba(cP, 1));
+  } else {
+    // Escaping to infinity indicator
+    const sign = tanY < 0 ? -1 : 1;
+    text(sign < 0 ? '▲ tan(θ) → +∞' : '▼ tan(θ) → -∞', tanX + 7, sign * 26, 2.6, rgba(cP, 1));
+  }
+
+  // Formula HUD card
+  ctx.fillStyle = rgba('13, 15, 46', 0.85);
+  ctx.strokeStyle = rgba(cP, 0.6);
+  ctx.lineWidth = 0.5;
+  ctx.fillRect(-34, -24, 30, 11);
+  ctx.strokeRect(-34, -24, 30, 11);
+
+  text('TANGENT RATIO', -19, -21.5, 2.2, rgba(cP, 1));
+  text('tan(θ) = sin(θ) / cos(θ)', -19, -18, 2.7, rgba(cW, 1));
+  text('As cos(θ) → 0, tan(θ) → ∞', -19, -14.8, 2.2, rgba(cG, 1));
+
+  updateTelemetry(theta);
+}
+
+// Scene 5: Harmonic Superposition & Waves of Nature
+function renderScene5(t) {
+  const waveX0 = -34;
+  const waveX1 = 34;
+
+  dashed(() => line(waveX0, 0, waveX1, 0, rgba(cW, 0.2), 0.3));
+
+  const k1 = 1.0;
+  const k2 = 0.5 * seg(t, 2, 4);
+  const k3 = 0.33 * seg(t, 4.5, 6.5);
+
+  const speed = t * 1.5;
+
+  // Composite Fourier Wave
+  ctx.beginPath();
+  for (let xPos = waveX0; xPos <= waveX1; xPos += 0.5) {
+    const th = (xPos - waveX0) / 10 * Math.PI + speed;
+    const yVal = -12 * (k1 * Math.sin(th) + k2 * Math.sin(2 * th) + k3 * Math.sin(3 * th));
+    if (xPos === waveX0) ctx.moveTo(xPos, yVal);
+    else ctx.lineTo(xPos, yVal);
+  }
+  ctx.strokeStyle = rgba(cB, 0.95);
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Individual component waves faintly in background
+  ctx.beginPath();
+  for (let xPos = waveX0; xPos <= waveX1; xPos += 0.8) {
+    const th = (xPos - waveX0) / 10 * Math.PI + speed;
+    const yVal = -12 * (k1 * Math.sin(th));
+    if (xPos === waveX0) ctx.moveTo(xPos, yVal); else ctx.lineTo(xPos, yVal);
+  }
+  ctx.strokeStyle = rgba(cA, 0.3); ctx.lineWidth = 0.5; ctx.stroke();
+
+  if (k2 > 0) {
+    ctx.beginPath();
+    for (let xPos = waveX0; xPos <= waveX1; xPos += 0.8) {
+      const th = (xPos - waveX0) / 10 * Math.PI + speed;
+      const yVal = -12 * (k2 * Math.sin(2 * th));
+      if (xPos === waveX0) ctx.moveTo(xPos, yVal); else ctx.lineTo(xPos, yVal);
+    }
+    ctx.strokeStyle = rgba(cG, 0.3); ctx.lineWidth = 0.5; ctx.stroke();
+  }
+
+  text('HARMONIC SUPERPOSITION', 0, -18, 3.8, rgba(cW, 1));
+  text('y(t) = sin(θ) + ½sin(2θ) + ⅓sin(3θ)', 0, -13, 2.8, rgba(cB, 1));
+  text('Constructive interference powers sound synthesis, radio broadcast, and optics', 0, 18, 2.4, rgba(cG, 0.85));
+
+  updateTelemetry(speed);
+}
+
+// Scene 6: Grand Finale & Intuition Unlocked
+function renderScene6(t) {
+  const al = seg(t, 0.2, 1.2);
+  drawUnitGrid(al);
+
+  // Golden glowing unit circle
+  circle(0, 0, R_UNIT, rgba(cG, 0.05), rgba(cG, 0.8), 0.8);
+
+  const theta = t * 1.2;
+  const px = R_UNIT * Math.cos(theta);
+  const py = -R_UNIT * Math.sin(theta);
+
+  // Triangle
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(px, 0); ctx.lineTo(px, py); ctx.closePath();
+  ctx.fillStyle = rgba(cB, 0.15); ctx.fill();
+
+  line(0, 0, px, 0, rgba(cG, 1), 1.1);
+  line(px, 0, px, py, rgba(cA, 1), 1.1);
+  line(0, 0, px, py, rgba(cW, 1), 0.9);
+  circle(px, py, 1.5, rgba(cB, 1), '#fff', 0.6);
+
+  // Sparkling cosmic stars / particles
+  for (let s = 0; s < 25; s++) {
+    const ang = s * 1.3 + t * 0.4;
+    const rad = 20 + 12 * Math.sin(s * 3.2 + t);
+    const sx = rad * Math.cos(ang), sy = rad * Math.sin(ang);
+    ctx.fillStyle = rgba(s % 2 === 0 ? cB : cG, 0.4 + 0.3 * Math.sin(t * 3 + s));
+    ctx.beginPath(); ctx.arc(sx, sy, 0.6, 0, 7); ctx.fill();
+  }
+
+  // Grand Finale Typography
+  text('Trigonometry', 0, -11, 7.5, rgba(cW, 1));
+  text('The geometry of everything that repeats, rotates, or oscillates', 0, -4, 3.4, rgba(cG, 1));
+  text('cos²θ + sin²θ = 1 • Period = 2π • Frequency = 1/T', 0, 20, 2.8, rgba(cB, 1));
+
+  updateTelemetry(theta);
+}
+
+const SCENE_FUNCTIONS = [
+  renderScene0,
+  renderScene1,
+  renderScene2,
+  renderScene3,
+  renderScene4,
+  renderScene5,
+  renderScene6
+];
+
+/* ==========================================================================
+   TELEMETRY HUD UPDATER
+   ========================================================================== */
+function updateTelemetry(theta) {
+  const normTheta = ((theta % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+  const deg = normTheta * 180 / Math.PI;
+  const cosV = Math.cos(normTheta);
+  const sinV = Math.sin(normTheta);
+  const tanV = Math.tan(normTheta);
+
+  telTheta.textContent = `${normTheta.toFixed(3)} rad`;
+  telDeg.textContent = `${deg.toFixed(1)}°`;
+  telCos.textContent = `${cosV.toFixed(3)}`;
+  telSin.textContent = `${sinV.toFixed(3)}`;
+  telTan.textContent = `${Math.abs(tanV) > 99 ? '∞' : tanV.toFixed(3)}`;
+  telPyth.textContent = `${(cosV * cosV + sinV * sinV).toFixed(4)}`;
+
+  // Tone synthesizer frequency maps harmonically to angle
+  if (soundEnabled) {
+    const baseFreq = 220; // A3
+    const freq = baseFreq * (1 + 0.5 * Math.sin(normTheta));
+    updateAudioPitch(freq, 0.04);
+  }
+}
+
+/* ==========================================================================
+   VIDEO TIMELINE PLAYBACK ENGINE
+   ========================================================================== */
+let isPlaying = true;
+let currentTime = 0;
+let playbackRate = 1.0;
+let lastTimestamp = performance.now();
+let activeCaptionKey = '';
+let activeSceneIdx = 0;
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function syncPlayButton() {
+  if (currentTime >= TOTAL_DURATION) {
+    playIcon.textContent = '🔄';
+    playText.textContent = 'Replay';
+  } else {
+    playIcon.textContent = isPlaying ? '⏸' : '▶';
+    playText.textContent = isPlaying ? 'Pause' : 'Play';
+  }
+}
+
+function togglePlay() {
+  initAudio();
+  if (currentTime >= TOTAL_DURATION) {
+    currentTime = 0;
+    isPlaying = true;
+  } else {
+    isPlaying = !isPlaying;
+  }
+  syncPlayButton();
+}
+
+function replayFilm() {
+  initAudio();
+  currentTime = 0;
+  isPlaying = true;
+  syncPlayButton();
+}
+
+function skip(deltaSec) {
+  initAudio();
+  currentTime = clamp(currentTime + deltaSec, 0, TOTAL_DURATION);
+  syncPlayButton();
+}
+
+function setPlaybackRate(rate) {
+  playbackRate = parseFloat(rate);
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+function toggleNanoBubble() {
+  nanoBubble.style.display = nanoBubble.style.display === 'none' ? 'block' : 'none';
+}
+
+// Keyboard shortcuts (Space = Play/Pause, Arrows = Seek)
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && e.target === document.body) {
+    e.preventDefault();
+    togglePlay();
+  } else if (e.code === 'ArrowRight') {
+    e.preventDefault();
+    skip(5);
+  } else if (e.code === 'ArrowLeft') {
+    e.preventDefault();
+    skip(-5);
+  }
+});
+
+// Interactive Timeline Scrubber drag & click
+let isDraggingTrack = false;
+
+function seekFromEvent(e) {
+  const rect = trackRail.getBoundingClientRect();
+  const ratio = clamp((e.clientX - rect.left) / rect.width);
+  currentTime = ratio * TOTAL_DURATION;
+  syncPlayButton();
+}
+
+trackRail.addEventListener('mousedown', e => {
+  isDraggingTrack = true;
+  seekFromEvent(e);
+});
+
+window.addEventListener('mousemove', e => {
+  const rect = trackRail.getBoundingClientRect();
+  const ratio = clamp((e.clientX - rect.left) / rect.width);
+  const hoverSec = ratio * TOTAL_DURATION;
+
+  timeTooltip.style.display = 'block';
+  timeTooltip.style.left = `${ratio * 100}%`;
+  timeTooltip.textContent = formatTime(hoverSec);
+
+  if (isDraggingTrack) seekFromEvent(e);
+});
+
+trackRail.addEventListener('mouseleave', () => {
+  if (!isDraggingTrack) timeTooltip.style.display = 'none';
+});
+
+window.addEventListener('mouseup', () => {
+  if (isDraggingTrack) {
+    isDraggingTrack = false;
+    timeTooltip.style.display = 'none';
+  }
+});
+
+/* ==========================================================================
+   MAIN CINEMATIC RENDER LOOP (60FPS)
+   ========================================================================== */
+function masterLoop(timestamp) {
+  const dt = Math.min(0.1, (timestamp - lastTimestamp) / 1000) * playbackRate;
+  lastTimestamp = timestamp;
+
+  if (isPlaying) {
+    currentTime = Math.min(TOTAL_DURATION, currentTime + dt);
+    if (currentTime >= TOTAL_DURATION) {
+      isPlaying = false;
+      syncPlayButton();
+      if (synthGain && audioCtx) synthGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    }
+  }
+
+  // Determine current active scene
+  let sceneIndex = 0;
+  let accumulated = 0;
+  while (sceneIndex < SCENE_DURATIONS.length - 1 && currentTime >= accumulated + SCENE_DURATIONS[sceneIndex]) {
+    accumulated += SCENE_DURATIONS[sceneIndex];
+    sceneIndex++;
+  }
+  const sceneLocalTime = currentTime - accumulated;
+
+  // Update Chapter indicator & Nano speech if scene changed
+  if (sceneIndex !== activeSceneIdx) {
+    activeSceneIdx = sceneIndex;
+    chapterLabel.textContent = CHAPTER_TITLES[sceneIndex];
+    nanoSpeech.textContent = NANO_INSIGHTS[sceneIndex];
+  }
+
+  // Clear Canvas and Apply DPR & Unit Scaling
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, sw, sh);
+
+  // Background Ambient Dust Particles
+  for (let p = 0; p < 45; p++) {
+    const px = sw * (0.5 + 0.5 * Math.sin(p * 8.7 + timestamp * 0.0006 * (1 + (p % 3) * 0.2)));
+    const py = sh * (0.5 + 0.5 * Math.sin(p * 4.3 + timestamp * 0.0009));
+    ctx.fillStyle = `rgba(${cW}, 0.12)`;
+    ctx.beginPath();
+    ctx.arc(px, py, 1 + (p % 3) * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Center coordinate camera transform
+  ctx.translate(sw / 2, sh * 0.44);
+  ctx.scale(U, U);
+
+  // Execute Current Scene Math Canvas Renderer
+  SCENE_FUNCTIONS[sceneIndex](sceneLocalTime);
+
+  // Reset transform for UI sync
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  // Update synchronized captions
+  let currentCaption = CAPTIONS[sceneIndex][0];
+  for (const q of CAPTIONS[sceneIndex]) {
+    if (q[0] <= sceneLocalTime) currentCaption = q;
+  }
+  const captionKey = `${sceneIndex}-${currentCaption[1]}`;
+  if (captionKey !== activeCaptionKey) {
+    activeCaptionKey = captionKey;
+    cap.textContent = currentCaption[1];
+    cap.animate([
+      { opacity: 0, transform: 'translateY(12px)' },
+      { opacity: 1, transform: 'translateY(0)' }
+    ], { duration: 550, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+  }
+
+  // Sync timeline progress UI
+  const progressRatio = currentTime / TOTAL_DURATION;
+  trackFill.style.width = `${progressRatio * 100}%`;
+  timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(TOTAL_DURATION)}`;
+
+  requestAnimationFrame(masterLoop);
+}
+
+// Launch animation
+requestAnimationFrame(masterLoop);
+</script>
+
+</body>
+</html>
+

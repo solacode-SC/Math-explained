@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Probability — The Film</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0d0f2e;--ink:#f3f0ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#1c1e55,var(--bg) 70%);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#cap{position:absolute;left:5vw;right:5vw;bottom:84px;text-align:center;font-weight:600;font-size:clamp(17px,3vw,30px);line-height:1.3;text-shadow:0 2px 18px #0d0f2e}
+#bar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:14px;align-items:center;padding:14px 18px}
+button{background:rgba(243,240,255,.14);color:var(--ink);border:0;border-radius:999px;padding:8px 20px;font:inherit;font-weight:600;cursor:pointer;min-width:84px}
+button:hover{background:rgba(243,240,255,.24)}
+button:focus-visible,#tr:focus-visible{outline:2px solid #ffd166;outline-offset:3px}
+#tr{flex:1;height:10px;border-radius:9px;background:rgba(243,240,255,.14);cursor:pointer;overflow:hidden}
+#fl{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6b57,#ffd166,#2ee6c5)}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="cap" aria-live="polite"></div>
+<div id="bar"><button id="b">Pause</button><div id="tr" tabindex="0" role="slider" aria-label="Progress"><i id="fl"></i></div></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),cap=document.getElementById('cap'),bt=document.getElementById('b'),tr=document.getElementById('tr'),fl=document.getElementById('fl');
+const cA='255,107,87',cB='46,230,197',cG='255,209,102',cW='243,240,255',FF="'Bricolage Grotesque',system-ui,sans-serif";
+let sw,sh,U,dpr;
+function rs(){dpr=window.devicePixelRatio||1;sw=innerWidth;sh=innerHeight;cv.width=sw*dpr;cv.height=sh*dpr;U=Math.min(sw/100,sh/75)}
+addEventListener('resize',rs);rs();
+const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),ez=v=>{v=cl(v);return v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2},seg=(t,a,b)=>ez((t-a)/(b-a)),w=(t,a,b)=>seg(t,a,a+.5)*(1-seg(t,b-.5,b)),rg=(c,a)=>`rgba(${c},${a})`;
+const C=(a,b,r,f,s,l=.4)=>{x.beginPath();x.arc(a,b,Math.max(r,0),0,7);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=l;x.stroke()}};
+const ln=(a,b,c,d,col,l=.5)=>{x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.strokeStyle=col;x.lineWidth=l;x.stroke()};
+const tx=(s,a,b,z,col,al=1)=>{if(al<=.01)return;x.save();x.scale(1/U,1/U);x.globalAlpha=Math.min(1,al);x.fillStyle=col;x.font=`800 ${z*U}px ${FF}`;x.textAlign='center';x.textBaseline='middle';x.fillText(s,a*U,b*U);x.restore()};
+const dash=(f)=>{x.setLineDash([1,1]);f();x.setLineDash([])};
+
+// Pre-seeded pseudo-random sequence for consistent smooth LLN coin toss rendering
+const coinFlips=[];
+let sRand=12345;
+function rand(){sRand=(sRand*16807)%2147483647;return(sRand-1)/2147483646}
+for(let i=0;i<500;i++){coinFlips.push(rand()<0.5?1:0)}
+// ensure first 10 flips has 7 heads as in user prompt example
+const first10=[1,1,0,1,1,0,1,1,0,1];
+for(let i=0;i<10;i++)coinFlips[i]=first10[i];
+
+function s0(t){
+  // Title scene: shimmering bell curve & probability waves
+  const k=seg(t,.2,2.5);
+  // Normal distribution curve
+  x.beginPath();
+  for(let px=-32;px<=32;px+=.5){
+    const py=14-26*Math.exp(-(px*px)/110);
+    if(px===-32)x.moveTo(px,py);else x.lineTo(px,py);
+  }
+  x.strokeStyle=rg(cG,.75*k);x.lineWidth=.8;x.stroke();
+
+  // Floating dots
+  for(let i=0;i<25;i++){
+    const an=i*1.3+t*.8;
+    const rx=Math.sin(an)*25,ry=14-22*Math.exp(-(rx*rx)/110)*(Math.sin(i*2.1+t)*.2+.8);
+    C(rx,ry,1.2,rg(i%2?cA:cB,.7*k));
+  }
+
+  tx('Probability',0,-12,7.5,rg(cW,1),seg(t,1.8,3));
+  tx("Bayes' theorem & the law of large numbers",0,-5,3.6,rg(cG,1),seg(t,3,4.2));
+  tx('reasoning with evidence under uncertainty',0,1,3,rg(cB,1),seg(t,4.2,5.4));
+}
+
+function s1(t){
+  // The Law of Large Numbers (Example B)
+  const k=seg(t,.2,1);
+  tx('The Law of Large Numbers: Fair Coin Toss',0,-24,4.2,rg(cG,1),k);
+
+  // Axes: x from 0 to 60 (trials), y from -16 (100%) to 16 (0%), center 0 is 50%
+  const ox=-28,oy=0,wPix=56;
+  dash(()=>{
+    ln(ox,oy,ox+wPix,oy,rg(cG,.7),.4); // 50% reference line
+    ln(ox,-16,ox+wPix,-16,rg(cW,.2),.25); // 100%
+    ln(ox,16,ox+wPix,16,rg(cW,.2),.25);  // 0%
+    ln(ox,-18,ox,18,rg(cW,.4),.4);
+  });
+  tx('100%',ox-4,-16,2.3,rg(cW,.6),k);
+  tx('50%',ox-4,0,2.6,rg(cG,1),k);
+  tx('0%',ox-4,16,2.3,rg(cW,.6),k);
+
+  // Animated progression of trials N:
+  // t from 1 to 13s -> N grows from 1 to 10000
+  const progress=seg(t,1,12);
+  const nTrials=Math.max(1,Math.floor(1+Math.pow(progress,3)*9999));
+
+  // Determine current heads and ratio
+  // For graph, we plot first min(nTrials, 120) points
+  const plotPoints=Math.min(nTrials,120);
+  x.beginPath();
+  let headsCount=0;
+  for(let i=1;i<=plotPoints;i++){
+    if(coinFlips[i-1]===1)headsCount++;
+    const ratio=headsCount/i;
+    const px=ox+(i/120)*wPix;
+    const py=-((ratio-0.5)*32); // 0.5 is at 0, 1.0 is at -16, 0.0 is at 16
+    if(i===1)x.moveTo(px,py);else x.lineTo(px,py);
+  }
+  x.strokeStyle=rg(cB,1);x.lineWidth=.8;x.stroke();
+
+  // If nTrials > 120, simulate heads count toward 50%
+  if(nTrials>120){
+    headsCount=Math.round(nTrials*0.5+(headsCount-plotPoints*0.5)*Math.sqrt(plotPoints/nTrials));
+  }
+  const curRatio=headsCount/nTrials;
+
+  // Current dot
+  const curPx=ox+(Math.min(plotPoints,120)/120)*wPix;
+  const curPy=-((curRatio-0.5)*32);
+  C(curPx,curPy,1.6,rg(cG,1));
+
+  // HUD Panel
+  x.fillStyle=rg('13,15,46',.88);x.strokeStyle=rg(cB,.8);x.lineWidth=.4;
+  x.fillRect(5,-23,28,18);x.strokeRect(5,-23,28,18);
+  tx('SIMULATION TELEMETRY',19,-19.5,2.1,rg(cW,.7));
+  tx(`Total Flips: N = ${nTrials.toLocaleString()}`,19,-15.5,2.8,rg(cW,1));
+  tx(`Heads: ${headsCount.toLocaleString()}  (${(curRatio*100).toFixed(1)}%)`,19,-11.5,3.1,rg(cG,1));
+  tx(`Target: 50.0%`,19,-7.5,2.6,rg(cB,1));
+
+  if(t<4.5){
+    tx('At N = 10: 7 Heads (70%) — wild short-run noise!',0,22,3.4,rg(cA,1));
+  } else {
+    tx('At N = 10,000: proportion locks precisely to 50%!',0,22,3.4,rg(cB,1));
+  }
+}
+
+function s2(t){
+  // Example A: Medical Test Paradox (Prior Probability & Test Accuracy)
+  const k=seg(t,.2,1);
+  tx('Bayes′ Theorem: The Rare Disease Paradox',0,-24,4.4,rg(cG,1),k);
+
+  // Population Representation: 10,000 people
+  // Disease Prevalence = 1% (100 people)
+  // Healthy = 99% (9,900 people)
+  const ox=-30,oy=-14,wBox=60,hBox=10;
+
+  // Population bar
+  x.fillStyle=rg(cB,.3);x.fillRect(ox,oy,wBox,hBox);
+  x.strokeStyle=rg(cB,.7);x.lineWidth=.5;x.strokeRect(ox,oy,wBox,hBox);
+
+  // 1% condition slice (coral)
+  const wSick=wBox*0.01;
+  x.fillStyle=rg(cA,.9);x.fillRect(ox,oy,wSick,hBox);
+  x.strokeStyle=rg(cA,1);x.lineWidth=.6;x.strokeRect(ox,oy,wSick,hBox);
+
+  tx('Total Population = 10,000',0,oy-3.5,3.2,rg(cW,.9),k);
+  tx('99% Healthy (9,900)',ox+32,oy+5,2.8,rg(cB,1),k);
+  arrow(ox-6,oy+5,ox+wSick/2,oy+5,rg(cA,1),.7,1.8);
+  tx('1% Sick (100)',ox-13,oy+5,2.8,rg(cA,1),k);
+
+  // The Test Specifications
+  const pSpec=seg(t,3,4.5);
+  if(pSpec>0){
+    x.fillStyle=rg('13,15,46',.85);x.strokeStyle=rg(cG,.8);x.lineWidth=.4;
+    x.fillRect(-32,2,30,16);x.strokeRect(-32,2,30,16);
+    tx('TEST ACCURACY',-17,5.5,2.2,rg(cW,.7));
+    tx('Sensitivity: 90%',-17,9.5,2.8,rg(cB,1));
+    tx('(Catches 90 of 100 sick)',-17,13,2.3,rg(cW,.8));
+    tx('False Positive: 5%',-17,16.5,2.8,rg(cA,1));
+
+    // Healthy false positives: 5% of 9900 = 495
+    x.fillStyle=rg('13,15,46',.85);x.strokeStyle=rg(cA,.8);x.lineWidth=.4;
+    x.fillRect(2,2,30,16);x.strokeRect(2,2,30,16);
+    tx('TEST RESULTS COUNT',17,5.5,2.2,rg(cW,.7));
+    tx('Sick & Positive: 90',17,9.5,2.8,rg(cG,1));
+    tx('Healthy & Positive: 495',17,13,2.8,rg(cA,1));
+    tx('Total Positives: 585',17,16.5,3.1,rg(cW,1));
+  }
+  tx('If you test positive, what is the chance you are actually sick?',0,23,3.6,rg(cG,1),seg(t,6,7.5));
+}
+
+function s3(t){
+  // The Bayesian Update & Calculation
+  const k=seg(t,.2,1);
+  tx('The Positive Pool: True vs False Positives',0,-24,4.4,rg(cG,1),k);
+
+  // Compare the 90 sick positives vs 495 healthy false positives
+  // Total positive = 585
+  const ox=-26,oy=-12,totW=52;
+  const sickW=totW*(90/585);
+  const healthyW=totW*(495/585);
+
+  // Visual bar of positive results
+  x.fillStyle=rg(cA,.9);x.fillRect(ox,oy,sickW,12);
+  x.strokeStyle=rg(cA,1);x.lineWidth=.5;x.strokeRect(ox,oy,sickW,12);
+  tx('90 Sick',ox+sickW/2,oy+6,2.8,rg(cW,1),k);
+
+  x.fillStyle=rg(cB,.35);x.fillRect(ox+sickW,oy,healthyW,12);
+  x.strokeStyle=rg(cB,.9);x.lineWidth=.5;x.strokeRect(ox+sickW,oy,healthyW,12);
+  tx('495 Healthy (False Alarm)',ox+sickW+healthyW/2,oy+6,2.8,rg(cW,1),k);
+
+  tx('Total Positive Tests = 585',0,oy-3.5,3.2,rg(cW,.9),k);
+
+  // Calculation Breakdown
+  const pCalc=seg(t,2.5,4.5);
+  if(pCalc>0){
+    x.fillStyle=rg('13,15,46',.9);x.strokeStyle=rg(cG,.85);x.lineWidth=.4;
+    x.fillRect(-34,4,68,14);x.strokeRect(-34,4,68,14);
+    tx('P(Condition | Positive) = True Positives / Total Positives',0,7.5,2.7,rg(cW,.8),pCalc);
+    tx('= 90 / (90 + 495)  =  90 / 585',0,11.5,3.3,rg(cB,1),pCalc);
+    tx('≈ 15.4%',0,15.5,4.4,rg(cG,1),pCalc);
+  }
+
+  tx('A positive test increases your chance from 1% to 15.4%…',0,22,3.3,rg(cW,.9),seg(t,6,7.5));
+  tx('…yet you still have an 84.6% chance of being healthy!',0,26,3.3,rg(cB,1),seg(t,7.5,9));
+}
+
+function s4(t){
+  // Bayes' Formula Breakdown
+  const k=seg(t,.2,1);
+  tx('Bayes′ Theorem: The Master Formula',0,-24,4.6,rg(cG,1),k);
+
+  // The formula: P(A|B) = [P(B|A) P(A)] / P(B)
+  x.fillStyle=rg('13,15,46',.85);x.strokeStyle=rg(cG,.8);x.lineWidth=.5;
+  x.fillRect(-35,-18,70,22);x.strokeRect(-35,-18,70,22);
+
+  tx('P(A | B)  =  [ P(B | A) × P(A) ]  /  P(B)',0,-12,4.4,rg(cG,1),k);
+  ln(-30,-7,30,-7,rg(cW,.2),.3);
+
+  // Annotations
+  tx('Posterior: Probability of condition given evidence',0,-3,2.8,rg(cG,1),seg(t,1.5,2.5));
+  tx('Likelihood: P(B | A) = 0.90   |   Prior: P(A) = 0.01',0,1,2.8,rg(cB,1),seg(t,2.5,3.5));
+  tx('Total Evidence: P(B) = (0.90)(0.01) + (0.05)(0.99) = 0.0585',0,5,2.8,rg(cA,1),seg(t,3.5,4.5));
+
+  tx('New Belief = (Prior Knowledge × Strength of Evidence) / Total Probability',0,22,3.1,rg(cW,1),seg(t,5,6.5));
+}
+
+function s5(t){
+  // Two Pillars: LLN and Bayes
+  const k=seg(t,.2,1);
+  tx('Two Pillars of Reasoning Under Uncertainty',0,-24,4.4,rg(cG,1),k);
+
+  // Pillar 1: Law of Large Numbers
+  x.fillStyle=rg('13,15,46',.85);x.strokeStyle=rg(cB,.8);x.lineWidth=.4;
+  x.fillRect(-34,-16,32,32);x.strokeRect(-34,-16,32,32);
+  tx('LAW OF LARGE NUMBERS',-18,-11,2.5,rg(cB,1));
+  tx('Objective Frequency',-18,-6,2.7,rg(cW,1));
+  tx('• As trials N → ∞',-18,-1,2.4,rg(cW,.8));
+  tx('• Sample mean → Expectation',-18,3.5,2.4,rg(cW,.8));
+  tx('• Randomness converges to order',-18,8,2.4,rg(cW,.8));
+  tx('Long-term Certainty',-18,12.5,2.6,rg(cG,1));
+
+  // Pillar 2: Bayes' Theorem
+  x.fillStyle=rg('13,15,46',.85);x.strokeStyle=rg(cA,.8);x.lineWidth=.4;
+  x.fillRect(2,-16,32,32);x.strokeRect(2,-16,32,32);
+  tx('BAYESIAN INFERENCE',18,-11,2.5,rg(cA,1));
+  tx('Subjective Belief',18,-6,2.7,rg(cW,1));
+  tx('• Start with prior beliefs',18,-1,2.4,rg(cW,.8));
+  tx('• Absorb new observations',18,3.5,2.4,rg(cW,.8));
+  tx('• Continually update truth',18,8,2.4,rg(cW,.8));
+  tx('Rational Adaptation',18,12.5,2.6,rg(cG,1));
+}
+
+function s6(t){
+  // Finale
+  for(let i=0;i<24;i++){
+    const an=i/24*6.283+t*.4;
+    const px=22*Math.cos(an),py=12*Math.sin(an);
+    C(px,py,1.5,rg([cG,cB,cA][i%3],.6));
+  }
+  C(0,0,1.2,rg(cG,1));
+  tx('Probability',0,-6,10,rg(cW,1),seg(t,.5,1.5));
+  tx('turning noise into knowledge',0,4,3.6,rg(cG,1),seg(t,1.5,2.5));
+}
+
+const D=[6.5,14,11,15,11,9,7],F=[s0,s1,s2,s3,s4,s5,s6],TOT=D.reduce((a,b)=>a+b),N=D.length-1;
+const CP=[
+[[0,'How do we reason rationally in an uncertain world?'],[3,'Probability unites two great ideas: frequency and belief.']],
+[[0,'Flip a fair coin 10 times: you might get 7 heads (70%).'],[4,'Random fluctuations deceive in small samples.'],[8,'Repeat it 10,000 times: the ratio locks onto exactly 50%.'],[11,'That is the Law of Large Numbers.']],
+[[0,'Now consider medical testing: 1% of people have a condition.'],[3.5,'A test is 90% accurate, but has a 5% false positive rate.'],[7.5,'If you test positive, what is the probability you are sick?']],
+[[0,'In a population of 10,000, 90 sick people test positive.'],[4,'However, 495 healthy people also receive false positive tests!'],[8.5,'Total positives = 585. Probability of condition = 90 / 585 ≈ 15.4%.'],[12,'A positive result updates your odds, but does not mean certainty.']],
+[[0,'Bayes′ theorem provides the mathematical engine for this update.'],[3.5,'Posterior belief = (Likelihood × Prior) divided by Evidence.'],[7.5,'Never evaluate a test without knowing the base rate!']],
+[[0,'The Law of Large Numbers reveals truth through repetition.'],[4,'Bayes′ theorem reveals truth through evidence.']],
+[[0,'Together, they form the bedrock of scientific discovery.'],[3,'From machine learning to medicine and everyday reasoning.']]];
+
+let T=0,pl=true,L=performance.now(),key='';
+function sync(){bt.textContent=T>=TOT?'Replay':pl?'Pause':'Play'}
+bt.onclick=()=>{if(T>=TOT){T=0;pl=true}else pl=!pl;sync()};
+addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();bt.click()}});
+tr.onclick=e=>{const r=tr.getBoundingClientRect();T=cl((e.clientX-r.left)/r.width)*TOT*.999;pl=true;sync()};
+function loop(n){const dt=Math.min(.1,(n-L)/1000);L=n;
+if(pl){T=Math.min(TOT,T+dt);if(T>=TOT){pl=false;sync()}}
+let i=0,s=0;while(i<N&&T>=s+D[i]){s+=D[i];i++}const t=T-s;
+x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,sw,sh);
+for(let j=0;j<50;j++){x.fillStyle=`rgba(${cW},.13)`;x.beginPath();x.arc(sw*(.5+.5*Math.sin(j*7.3+n*.0008*(1+j%3*.3))),sh*(.5+.5*Math.sin(j*3.1+n*.0011)),1+j%3,0,7);x.fill()}
+x.translate(sw/2,sh*.42);x.scale(U,U);F[i](t);x.setTransform(1,0,0,1,0,0);
+let c=CP[i][0];for(const q of CP[i])if(q[0]<=t)c=q;const k=i+c[1];
+if(k!==key){key=k;cap.textContent=c[1];cap.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:600,easing:'ease-out'})}
+fl.style.width=T/TOT*100+'%';requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script></body></html>
+

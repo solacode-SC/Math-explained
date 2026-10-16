@@ -1,0 +1,112 @@
+/* Graph Paper Background & Retro Desktop Grid */
+
+.graph-paper-bg {
+  background-color: var(--bg-cream);
+  background-image: 
+    linear-gradient(to right, rgba(109, 118, 82, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(109, 118, 82, 0.08) 1px, transparent 1px),
+    linear-gradient(to right, rgba(109, 118, 82, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(109, 118, 82, 0.16) 1px, transparent 1px);
+  background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+  background-position: -1px -1px;
+}
+
+/* Subtle physical paper grain */
+.paper-texture {
+  position: relative;
+}
+
+.paper-texture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: radial-gradient(var(--ink-dark) 1px, transparent 0);
+  background-size: 4px 4px;
+  z-index: 99;
+}
+
+/* Retro UI Elements */
+.retro-box {
+  background-color: var(--bg-paper-light);
+  border: var(--border-thick);
+  border-radius: var(--radius-window);
+  box-shadow: var(--shadow-retro);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.retro-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-cream-dark);
+  color: var(--ink-dark);
+  border: 2px solid var(--ink-dark);
+  border-radius: var(--radius-button);
+  font-family: var(--font-arabic-primary);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 16px;
+  cursor: pointer;
+  box-shadow: 2px 3px 0px rgba(37, 39, 31, 0.25);
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.retro-button:hover {
+  background: var(--bg-paper-light);
+  transform: translateY(-1px);
+  box-shadow: 3px 4px 0px rgba(37, 39, 31, 0.3);
+}
+
+.retro-button:active {
+  transform: translateY(2px);
+  box-shadow: 0px 1px 0px rgba(37, 39, 31, 0.25);
+}
+
+.retro-button.active,
+.retro-button.primary {
+  background: var(--olive-muted);
+  color: var(--bg-paper-light);
+  border-color: var(--ink-dark);
+}
+
+.retro-button.accent-orange {
+  background: var(--accent-orange);
+  color: #FFFFFF;
+}
+
+.retro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1.5px solid var(--ink-dark);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--bg-cream-dark);
+  color: var(--ink-dark);
+}
+
+/* Custom retro scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-cream-dark);
+  border-left: 1.5px solid var(--olive-light);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--olive-muted);
+  border: 1.5px solid var(--ink-dark);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--olive-dark);
+}
+

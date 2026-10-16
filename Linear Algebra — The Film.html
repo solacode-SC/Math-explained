@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Linear Algebra — The Film</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0d0f2e;--ink:#f3f0ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#1c1e55,var(--bg) 70%);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#cap{position:absolute;left:5vw;right:5vw;bottom:84px;text-align:center;font-weight:600;font-size:clamp(17px,3vw,30px);line-height:1.3;text-shadow:0 2px 18px #0d0f2e}
+#bar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:14px;align-items:center;padding:14px 18px}
+button{background:rgba(243,240,255,.14);color:var(--ink);border:0;border-radius:999px;padding:8px 20px;font:inherit;font-weight:600;cursor:pointer;min-width:84px}
+button:hover{background:rgba(243,240,255,.24)}
+button:focus-visible,#tr:focus-visible{outline:2px solid #ffd166;outline-offset:3px}
+#tr{flex:1;height:10px;border-radius:9px;background:rgba(243,240,255,.14);cursor:pointer;overflow:hidden}
+#fl{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6b57,#ffd166,#2ee6c5)}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="cap" aria-live="polite"></div>
+<div id="bar"><button id="b">Pause</button><div id="tr" tabindex="0" role="slider" aria-label="Progress"><i id="fl"></i></div></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),cap=document.getElementById('cap'),bt=document.getElementById('b'),tr=document.getElementById('tr'),fl=document.getElementById('fl');
+const cA='255,107,87',cB='46,230,197',cG='255,209,102',cW='243,240,255',FF="'Bricolage Grotesque',system-ui,sans-serif";
+let sw,sh,U,dpr;
+function rs(){dpr=window.devicePixelRatio||1;sw=innerWidth;sh=innerHeight;cv.width=sw*dpr;cv.height=sh*dpr;U=Math.min(sw/100,sh/75)}
+addEventListener('resize',rs);rs();
+const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),ez=v=>{v=cl(v);return v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2},seg=(t,a,b)=>ez((t-a)/(b-a)),w=(t,a,b)=>seg(t,a,a+.5)*(1-seg(t,b-.5,b)),rg=(c,a)=>`rgba(${c},${a})`;
+const C=(a,b,r,f,s,l=.4)=>{x.beginPath();x.arc(a,b,Math.max(r,0),0,7);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=l;x.stroke()}};
+const ln=(a,b,c,d,col,l=.5)=>{x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.strokeStyle=col;x.lineWidth=l;x.stroke()};
+const tx=(s,a,b,z,col,al=1)=>{if(al<=.01)return;x.save();x.scale(1/U,1/U);x.globalAlpha=Math.min(1,al);x.fillStyle=col;x.font=`800 ${z*U}px ${FF}`;x.textAlign='center';x.textBaseline='middle';x.fillText(s,a*U,b*U);x.restore()};
+const dash=(f)=>{x.setLineDash([1,1]);f();x.setLineDash([])};
+
+function arrow(x1,y1,x2,y2,col,lw=.8,head=2.2){
+  const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
+  if(len<0.2)return;
+  ln(x1,y1,x2,y2,col,lw);
+  const ang=Math.atan2(dy,dx);
+  x.beginPath();
+  x.moveTo(x2,y2);
+  x.lineTo(x2-head*Math.cos(ang-0.45),y2-head*Math.sin(ang-0.45));
+  x.lineTo(x2-head*Math.cos(ang+0.45),y2-head*Math.sin(ang+0.45));
+  x.closePath();
+  x.fillStyle=col;x.fill();
+}
+
+// Draw a grid transformed by 2x2 matrix: [m00 m01; m10 m11]
+function drawTransformedGrid(m00,m01,m10,m11,gridCol=rg(cW,.18),axisCol=rg(cW,.5),lw=.35){
+  const step=6,count=5;
+  // Grid lines
+  for(let i=-count;i<=count;i++){
+    // vertical grid lines (constant x=i*step, y varies)
+    const xA=m00*(i*step)+m01*(-count*step);
+    const yA=m10*(i*step)+m11*(-count*step);
+    const xB=m00*(i*step)+m01*(count*step);
+    const yB=m10*(i*step)+m11*(count*step);
+    ln(xA,-yA,xB,-yB,i===0?axisCol:gridCol,i===0?.7:lw);
+
+    // horizontal grid lines (constant y=i*step, x varies)
+    const xC=m00*(-count*step)+m01*(i*step);
+    const yC=m10*(-count*step)+m11*(i*step);
+    const xD=m00*(count*step)+m01*(i*step);
+    const yD=m10*(count*step)+m11*(i*step);
+    ln(xC,-yC,xD,-yD,i===0?axisCol:gridCol,i===0?.7:lw);
+  }
+}
+
+function s0(t){
+  // Title scene: grid warping rhythmically
+  const k=seg(t,.2,2.5);
+  const ang=Math.sin(t*1.2)*.3;
+  const sx=1+.3*Math.cos(t*1.5),sy=1-.2*Math.cos(t*1.5);
+  const m00=sx*Math.cos(ang),m01=-Math.sin(ang);
+  const m10=Math.sin(ang),m11=sy*Math.cos(ang);
+  drawTransformedGrid(m00*k,m01*k,m10*k,m11*k,rg(cW,.16),rg(cG,.5));
+  C(0,0,1.4,rg(cG,1));
+
+  tx('Linear Algebra',0,-12,7.5,rg(cW,1),seg(t,1.8,3));
+  tx('Vectors, transformations, and eigenvectors',0,-5,3.6,rg(cG,1),seg(t,3,4.2));
+  tx('how matrices warp space and preserve directions',0,1,3,rg(cB,1),seg(t,4.2,5.4));
+}
+
+function s1(t){
+  // Basis vectors i-hat and j-hat
+  const k=seg(t,.2,1);
+  drawTransformedGrid(1,0,0,1,rg(cW,.18*k),rg(cW,.6*k));
+  const S=10;
+
+  // i-hat (1, 0)
+  arrow(0,0,S,0,rg(cA,1),1.2,2.6);
+  tx('î = (1, 0)',S+6,2.5,3.2,rg(cA,1),k);
+
+  // j-hat (0, 1)
+  arrow(0,0,0,-S,rg(cB,1),1.2,2.6);
+  tx('ĵ = (0, 1)',3.5,-S-3.5,3.2,rg(cB,1),k);
+
+  // Arbitrary vector v = 2 i + 1.5 j
+  const pV=seg(t,3,4.5);
+  if(pV>0){
+    arrow(0,0,2*S,-1.5*S,rg(cG,pV),1.1,2.5);
+    tx('v = 2î + 1.5ĵ',2*S+5,-1.5*S-2,3.3,rg(cG,1),pV);
+  }
+  tx('Coordinate Space & Basis Vectors',0,-24,4.2,rg(cW,1),k);
+  tx('Every vector in 2D is a combination of î and ĵ',0,23,3.4,rg(cW,.9),seg(t,4.5,6));
+}
+
+function s2(t){
+  // Linear Transformation: entire space warps
+  const k=seg(t,.2,.8);
+  const morph=seg(t,1.5,6.5);
+  // Transform from Identity [1 0; 0 1] to a shear matrix [1.2 0.8; 0.2 1.1]
+  const m00=1+0.2*morph,m01=0.8*morph;
+  const m10=0.2*morph,m11=1+0.1*morph;
+  drawTransformedGrid(m00,m01,m10,m11,rg(cW,.2),rg(cW,.6));
+
+  const S=10;
+  // Transformed i-hat
+  arrow(0,0,m00*S,-m10*S,rg(cA,1),1.2,2.4);
+  // Transformed j-hat
+  arrow(0,0,m01*S,-m11*S,rg(cB,1),1.2,2.4);
+
+  // Matrix display
+  x.fillStyle=rg('13,15,46',.85);x.strokeStyle=rg(cG,.8);x.lineWidth=.4;
+  x.fillRect(-34,-24,26,14);x.strokeRect(-34,-24,26,14);
+  tx('MATRIX M',-21,-20.5,2.2,rg(cW,.7));
+  tx(`[ ${m00.toFixed(1)}  ${m01.toFixed(1)} ]`,-21,-16.5,2.8,rg(cW,1));
+  tx(`[ ${m10.toFixed(1)}  ${m11.toFixed(1)} ]`,-21,-12.5,2.8,rg(cW,1));
+
+  tx('A Matrix transforms the whole coordinate plane',0,-24,4.2,rg(cG,1),k);
+  tx('Grid lines stay parallel and evenly spaced; origin never moves',0,23,3.4,rg(cW,.9),seg(t,4.5,6));
+}
+
+function s3(t){
+  // Concrete Example Matrix: A = [2 0; 0 1]
+  // Doubles horizontal, leaves vertical unchanged
+  const k=seg(t,.2,.8);
+  const morph=seg(t,1.5,5.5);
+  const m00=1+(2-1)*morph,m01=0;
+  const m10=0,m11=1;
+
+  drawTransformedGrid(m00,m01,m10,m11,rg(cW,.2),rg(cW,.6));
+
+  const S=9;
+  // Test vector w = (1, 1) -> transforms to (2, 1)
+  const origWx=S,origWy=-S;
+  const curWx=m00*S,curWy=-S;
+
+  // Span line of original vector w
+  dash(()=>{ln(-30,30,30,-30,rg(cW,.3),.3)});
+
+  // Vector w
+  arrow(0,0,curWx,curWy,rg(cA,1),1.2,2.5);
+  C(curWx,curWy,1.5,rg(cA,1));
+
+  // Matrix HUD
+  x.fillStyle=rg('13,15,46',.88);x.strokeStyle=rg(cA,.8);x.lineWidth=.4;
+  x.fillRect(-35,-24,28,16);x.strokeRect(-35,-24,28,16);
+  tx('TRANSFORMATION A',-21,-20.5,2.1,rg(cW,.7));
+  tx('A = [ 2   0 ]',-21,-16.5,3,rg(cG,1));
+  tx('    [ 0   1 ]',-21,-12.5,3,rg(cG,1));
+
+  tx('Most vectors get knocked OFF their line',0,-24,4.2,rg(cA,1),k);
+  tx('Vector (1, 1) turns toward the x-axis: becomes (2, 1)',0,23,3.4,rg(cW,.9),seg(t,4,5.5));
+}
+
+function s4(t){
+  // Eigenvectors: Vectors that Stay on Their Original Span!
+  const k=seg(t,.2,.8);
+  const m00=2,m01=0,m10=0,m11=1;
+  drawTransformedGrid(m00,m01,m10,m11,rg(cW,.18),rg(cW,.5));
+
+  const S=9;
+  // Eigenvector 1: along x-axis (1, 0) -> (2, 0)
+  // Highlight horizontal eigen-line in glowing gold
+  ln(-36,0,36,0,rg(cG,.6),.8);
+  arrow(0,0,2*S,0,rg(cG,1),1.4,2.8);
+  C(2*S,0,1.8,rg(cG,1));
+  tx('Eigenvector v₁ = (1, 0)',2*S+2,3.5,2.9,rg(cG,1));
+  tx('λ₁ = 2 (Stretches 2×)',2*S+2,7,2.7,rg(cG,.9));
+
+  // Eigenvector 2: along y-axis (0, 1) -> (0, 1)
+  // Highlight vertical eigen-line in glowing teal
+  ln(0,-24,0,24,rg(cB,.6),.8);
+  arrow(0,0,0,-S,rg(cB,1),1.4,2.8);
+  C(0,-S,1.8,rg(cB,1));
+  tx('Eigenvector v₂ = (0, 1)',-11,-S-1,2.9,rg(cB,1));
+  tx('λ₂ = 1 (Unchanged)',-11,-S+3,2.7,rg(cB,.9));
+
+  // The Defining Equation HUD
+  x.fillStyle=rg('13,15,46',.9);x.strokeStyle=rg(cG,.85);x.lineWidth=.4;
+  x.fillRect(-35,-24,32,16);x.strokeRect(-35,-24,32,16);
+  tx('THE EIGENVALUE EQUATION',-19,-20.5,2.1,rg(cW,.7));
+  tx('A v = λ v',-19,-16,4,rg(cG,1));
+  tx('Matrix acts as a simple scalar!',-19,-11.5,2.5,rg(cW,.9));
+
+  tx('EIGENVECTORS: Directions that do NOT rotate',0,-24,4.2,rg(cG,1),k);
+  tx('They only stretch or shrink by the factor λ (eigenvalue)',0,23,3.4,rg(cG,1),seg(t,4,6));
+}
+
+function s5(t){
+  // General Transformation with Diagonal Eigen-axes
+  // Matrix stretching along diagonal 45 deg by 2, compressing -45 deg by 0.5
+  const k=seg(t,.2,.8);
+  const pulse=Math.sin(t*1.5)*.3+.7;
+  const m00=1.25,m01=0.75*pulse,m10=0.75*pulse,m11=1.25;
+  drawTransformedGrid(m00,m01,m10,m11,rg(cW,.15),rg(cW,.4));
+
+  // Eigen-axes at 45 deg and -45 deg
+  dash(()=>{
+    ln(-25,-25,25,25,rg(cG,.7),.5);
+    ln(-25,25,25,-25,rg(cB,.7),.5);
+  });
+  arrow(0,0,16,-16,rg(cG,1),1.2,2.5);
+  arrow(0,0,-9,-9,rg(cB,1),1.2,2.5);
+
+  tx('Eigen-axis 1 (Stretching)',17,-19,2.8,rg(cG,1));
+  tx('Eigen-axis 2 (Compressing)',-14,-12,2.8,rg(cB,1));
+
+  tx('Diagonalization: Space in its True Coordinates',0,-24,4.2,rg(cG,1),k);
+  tx('Along the eigenvectors, the matrix acts simply as scaling',0,23,3.4,rg(cW,1),seg(t,4,5.5));
+}
+
+function s6(t){
+  // Finale
+  for(let i=0;i<16;i++){
+    const an=i/16*6.283+t*.3;
+    const len=15+5*Math.cos(t*2+i);
+    arrow(0,0,len*Math.cos(an),-len*Math.sin(an),rg([cG,cA,cB][i%3],.45),.5,1.5);
+  }
+  C(0,0,1.2,rg(cG,1));
+  tx('Linear Algebra',0,-6,9.5,rg(cW,1),seg(t,.5,1.5));
+  tx('finding the invariant axes of transformation',0,4,3.6,rg(cG,1),seg(t,1.5,2.5));
+}
+
+const D=[6.5,9,11,14,15,11,7],F=[s0,s1,s2,s3,s4,s5,s6],TOT=D.reduce((a,b)=>a+b),N=D.length-1;
+const CP=[
+[[0,'How do you transform an entire multidimensional space?'],[3,'Linear algebra is the study of vectors and matrix transformations.']],
+[[0,'Basis vectors î and ĵ define the coordinate grid.'],[3,'Any vector in space is just a linear combination of these basis arrows.']],
+[[0,'A matrix acts as a transformation that warps the entire grid.'],[3.5,'Lines remain parallel and straight; the origin remains motionless.'],[7.5,'Where î and ĵ land completely defines where everything else goes.']],
+[[0,'Consider matrix A = [ 2  0 ; 0  1 ]. It doubles horizontal coordinates.'],[4,'Notice the vector (1, 1): it gets tilted away from its original line!'],[8.5,'Most vectors change direction when transformed.']],
+[[0,'But look at the axes! Special vectors stay on their exact same line.'],[4,'(1, 0) stretches to (2, 0): an eigenvector with eigenvalue 2.'],[8.5,'(0, 1) stays at (0, 1): an eigenvector with eigenvalue 1.'],[12,'A v = λ v : the matrix acts as pure scalar stretching.']],
+[[0,'Every diagonalizable transformation has these natural axes.'],[3.5,'Along eigenvectors, complicated matrix actions become simple numbers.']],
+[[0,'From Google PageRank to quantum mechanics and 3D graphics…'],[3,'Eigenvectors reveal the hidden backbone of transformation.']]];
+
+let T=0,pl=true,L=performance.now(),key='';
+function sync(){bt.textContent=T>=TOT?'Replay':pl?'Pause':'Play'}
+bt.onclick=()=>{if(T>=TOT){T=0;pl=true}else pl=!pl;sync()};
+addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();bt.click()}});
+tr.onclick=e=>{const r=tr.getBoundingClientRect();T=cl((e.clientX-r.left)/r.width)*TOT*.999;pl=true;sync()};
+function loop(n){const dt=Math.min(.1,(n-L)/1000);L=n;
+if(pl){T=Math.min(TOT,T+dt);if(T>=TOT){pl=false;sync()}}
+let i=0,s=0;while(i<N&&T>=s+D[i]){s+=D[i];i++}const t=T-s;
+x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,sw,sh);
+for(let j=0;j<50;j++){x.fillStyle=`rgba(${cW},.13)`;x.beginPath();x.arc(sw*(.5+.5*Math.sin(j*7.3+n*.0008*(1+j%3*.3))),sh*(.5+.5*Math.sin(j*3.1+n*.0011)),1+j%3,0,7);x.fill()}
+x.translate(sw/2,sh*.42);x.scale(U,U);F[i](t);x.setTransform(1,0,0,1,0,0);
+let c=CP[i][0];for(const q of CP[i])if(q[0]<=t)c=q;const k=i+c[1];
+if(k!==key){key=k;cap.textContent=c[1];cap.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:600,easing:'ease-out'})}
+fl.style.width=T/TOT*100+'%';requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script></body></html>
+

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Derivatives — The Film</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0d0f2e;--ink:#f3f0ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#1c1e55,var(--bg) 70%);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#cap{position:absolute;left:5vw;right:5vw;bottom:84px;text-align:center;font-weight:600;font-size:clamp(17px,3vw,30px);line-height:1.3;text-shadow:0 2px 18px #0d0f2e}
+#bar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:14px;align-items:center;padding:14px 18px}
+button{background:rgba(243,240,255,.14);color:var(--ink);border:0;border-radius:999px;padding:8px 20px;font:inherit;font-weight:600;cursor:pointer;min-width:84px}
+button:hover{background:rgba(243,240,255,.24)}
+button:focus-visible,#tr:focus-visible{outline:2px solid #ffd166;outline-offset:3px}
+#tr{flex:1;height:10px;border-radius:9px;background:rgba(243,240,255,.14);cursor:pointer;overflow:hidden}
+#fl{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6b57,#ffd166,#2ee6c5)}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="cap" aria-live="polite"></div>
+<div id="bar"><button id="b">Pause</button><div id="tr" tabindex="0" role="slider" aria-label="Progress"><i id="fl"></i></div></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),cap=document.getElementById('cap'),bt=document.getElementById('b'),tr=document.getElementById('tr'),fl=document.getElementById('fl');
+const cA='255,107,87',cB='46,230,197',cG='255,209,102',cW='243,240,255',FF="'Bricolage Grotesque',system-ui,sans-serif";
+let sw,sh,U,dpr;
+function rs(){dpr=window.devicePixelRatio||1;sw=innerWidth;sh=innerHeight;cv.width=sw*dpr;cv.height=sh*dpr;U=Math.min(sw/100,sh/75)}
+addEventListener('resize',rs);rs();
+const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),ez=v=>{v=cl(v);return v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2},seg=(t,a,b)=>ez((t-a)/(b-a)),w=(t,a,b)=>seg(t,a,a+.5)*(1-seg(t,b-.5,b)),rg=(c,a)=>`rgba(${c},${a})`;
+const C=(a,b,r,f,s,l=.4)=>{x.beginPath();x.arc(a,b,Math.max(r,0),0,7);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=l;x.stroke()}};
+const ln=(a,b,c,d,col,l=.5)=>{x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.strokeStyle=col;x.lineWidth=l;x.stroke()};
+const tx=(s,a,b,z,col,al=1)=>{if(al<=.01)return;x.save();x.scale(1/U,1/U);x.globalAlpha=Math.min(1,al);x.fillStyle=col;x.font=`800 ${z*U}px ${FF}`;x.textAlign='center';x.textBaseline='middle';x.fillText(s,a*U,b*U);x.restore()};
+const dash=(f)=>{x.setLineDash([1,1]);f();x.setLineDash([])};
+
+// Parabola curve helper: screen Y is downward, so math y = a*x^2 corresponds to screen Y = -scale*y
+const fPara=X=>0.055*X*X;
+const dfPara=X=>0.11*X;
+
+function s0(t){
+  // Title scene: rotating tangent swooshing on an elegant arch
+  const k=seg(t,.2,2.5);
+  for(let i=-35;i<=35;i+=2){
+    const X1=i,Y1=15-0.035*X1*X1;
+    const X2=i+2,Y2=15-0.035*X2*X2;
+    ln(X1*k,Y1*k,X2*k,Y2*k,rg(cW,.35*k),.5);
+  }
+  const px=18*Math.sin(t*1.4),py=15-0.035*px*px,sl=-0.07*px;
+  const dx=10,dy=sl*dx;
+  ln(px-dx,py+dy,px+dx,py-dy,rg(cG,seg(t,1,2)),.9);
+  C(px,py,1.5,rg(cG,seg(t,1,2)));
+  tx('Derivatives',0,-10,7.5,rg(cW,1),seg(t,1.8,3));
+  tx('A tangent line rotating along a curve',0,-3,3.6,rg(cG,1),seg(t,3,4.2));
+  tx('the geometry of instantaneous change',0,3,3,rg(cB,1),seg(t,4.2,5.4));
+}
+
+function s1(t){
+  // Secant approaching Tangent: delta x -> 0
+  const k=seg(t,.2,1.2);
+  // Axes
+  dash(()=>{ln(-36,18,36,18,rg(cW,.25*k),.3);ln(-26,-24,-26,22,rg(cW,.25*k),.3)});
+  // Curve f(x)
+  x.beginPath();
+  for(let i=-20;i<=32;i++){
+    const sy=18-0.038*(i+10)*(i+10);
+    if(i===-20)x.moveTo(i,sy);else x.lineTo(i,sy);
+  }
+  x.strokeStyle=rg(cW,.6*k);x.lineWidth=.6;x.stroke();
+  tx('f(x)',33,18-0.038*42*42+3,3.2,rg(cW,.8),k);
+
+  const x0=-6,y0=18-0.038*(x0+10)*(x0+10);
+  const slide=seg(t,2,6.5);
+  const dx=18*(1-slide)+.01;
+  const x1=x0+dx,y1=18-0.038*(x1+10)*(x1+10);
+  const slope=(y1-y0)/dx;
+
+  // Secant line
+  const lExt=28;
+  ln(x0-lExt*.5,y0-slope*lExt*.5,x1+lExt*.6,y1+slope*lExt*.6,rg(slide>.9?cG:cA,.85),slide>.9?1:.6);
+
+  // Points P and Q
+  C(x0,y0,1.4,rg(cG,1));
+  tx('P (x, f(x))',x0-6,y0-3.5,2.7,rg(cG,1));
+  if(slide<.98){
+    C(x1,y1,1.3,rg(cA,1));
+    tx('Q',x1+3.5,y1-2,2.7,rg(cA,1));
+    // Triangle dx, dy
+    dash(()=>{
+      ln(x0,y0,x1,y0,rg(cB,.7),.3);
+      ln(x1,y0,x1,y1,rg(cB,.7),.3);
+    });
+    tx('Δx',(x0+x1)/2,y0+2.8,2.8,rg(cB,1));
+    tx('Δy',x1+3.2,(y0+y1)/2,2.8,rg(cB,1));
+  }
+  tx('Average rate = Δy / Δx',0,-20,4,rg(cW,1),w(t,1.2,4.8));
+  tx('As Δx → 0, secant snaps to TANGENT',0,-20,4.2,rg(cG,1),seg(t,6.6,7.8));
+  tx('f′(x) = lim  [f(x + Δx) − f(x)] / Δx',0,-14,4,rg(cB,1),seg(t,7.8,9));
+}
+
+function s2(t){
+  // Tangent line rotating dynamically along a parabola!
+  // Move point along parabola, compute instantaneous slope, rotate tangent
+  const k=seg(t,.2,1);
+  // Grid lines
+  dash(()=>{
+    ln(-35,16,35,16,rg(cW,.2*k),.3);
+    ln(0,-24,0,20,rg(cW,.2*k),.3);
+  });
+  tx('x',34,18.5,2.6,rg(cW,.6),k);
+  tx('y',2,-22,2.6,rg(cW,.6),k);
+
+  // Curve: screen y = 14 - 0.065 * x^2
+  x.beginPath();
+  for(let px=-26;px<=26;px++){
+    const py=14-0.065*px*px;
+    if(px===-26)x.moveTo(px,py);else x.lineTo(px,py);
+  }
+  x.strokeStyle=rg(cW,.7*k);x.lineWidth=.7;x.stroke();
+
+  // Sweep X back and forth: -20 to +20
+  const sweep=Math.sin((t-1)*.7);
+  const curX=20*sweep;
+  const curY=14-0.065*curX*curX;
+  const slope=-0.13*curX; // screen slope dy/dx
+
+  // Tangent line of length 24
+  const len=13;
+  const cosT=1/Math.sqrt(1+slope*slope);
+  const sinT=slope*cosT;
+  const col=curX<-3?cA:curX>3?cB:cG;
+
+  // Tangent line
+  ln(curX-len*cosT,curY-len*sinT,curX+len*cosT,curY+len*sinT,rg(col,1),1.2);
+  C(curX,curY,1.6,rg(cG,1));
+
+  // Rise-over-run triangle
+  const triW=5*(curX>=0?1:-1);
+  const triH=triW*slope;
+  dash(()=>{
+    ln(curX,curY,curX+triW,curY,rg(cW,.5),.3);
+    ln(curX+triW,curY,curX+triW,curY+triH,rg(col,.7),.3);
+  });
+
+  // Dynamic HUD panel
+  const mathX=(curX/7).toFixed(2);
+  const mathY=(0.065*curX*curX/7).toFixed(2);
+  const mathSlope=(0.13*curX/1).toFixed(2);
+
+  x.fillStyle=rg('13,15,46',.82);
+  x.strokeStyle=rg(col,.8);
+  x.lineWidth=.4;
+  x.fillRect(-35,-25,32,15);
+  x.strokeRect(-35,-25,32,15);
+
+  tx('LIVE TELEMETRY',-19,-22,2.3,rg(cW,.7));
+  tx(`Point: (${mathX}, ${mathY})`,-19,-18,2.7,rg(cW,1));
+  tx(`Slope f′(x) = ${mathSlope}`,-19,-14,3.1,rg(col,1));
+  const desc=curX<-4?'Descending (f′ < 0)':curX>4?'Ascending (f′ > 0)':'Flat valley (f′ = 0)';
+  tx(desc,-19,-10.5,2.6,rg(cG,1));
+}
+
+function s3(t){
+  // Concrete Example: f(x) = x^2, f'(x) = 2x at x = 1 and x = 3
+  tx('Example:  f(x) = x²  ⟹  f′(x) = 2x',0,-24,4.6,rg(cG,1),seg(t,.2,1));
+  const k=seg(t,.5,1.5);
+  dash(()=>{
+    ln(-35,16,35,16,rg(cW,.2*k),.3);
+    ln(-22,-20,-22,18,rg(cW,.2*k),.3);
+  });
+  // Graph of f(x) = x^2 scaled
+  // Let 1 unit = 7 px horizontally, 1 unit = 2.2 px vertically
+  // x=0 is at -18, y=0 is at 14
+  const ox=-16,oy=14,ux=6,uy=2.2;
+  x.beginPath();
+  for(let u=0;u<=4.2;u+=.1){
+    const px=ox+u*ux,py=oy-u*u*uy;
+    if(u===0)x.moveTo(px,py);else x.lineTo(px,py);
+  }
+  x.strokeStyle=rg(cW,.7*k);x.lineWidth=.7;x.stroke();
+
+  // Part 1: x = 1 (t between 1.5 and 6)
+  const p1=w(t,1.2,6.2);
+  if(p1>0){
+    const x1=ox+1*ux,y1=oy-1*1*uy;
+    C(x1,y1,1.5,rg(cA,p1));
+    // Tangent slope in screen: dy/dx = - (2 * 1 * uy)/ux = - (2 * 2.2)/6 = -0.733
+    const sl=-2*uy/ux;
+    ln(x1-8,y1-8*sl,x1+8,y1+8*sl,rg(cA,p1),1.1);
+    dash(()=>{
+      ln(x1,y1,x1+ux,y1,rg(cW,.5*p1),.3);
+      ln(x1+ux,y1,x1+ux,y1+2*uy*(-1),rg(cA,.7*p1),.3);
+    });
+    tx('At x = 1:',12,-15,3.6,rg(cA,1),p1);
+    tx('f(1) = 1² = 1',12,-10,3.3,rg(cW,1),p1);
+    tx('f′(1) = 2(1) = 2 (Slope)',12,-5,3.8,rg(cA,1),p1);
+    tx('Gentle climb',12,0,2.8,rg(cG,1),p1);
+  }
+
+  // Part 2: x = 3 (t between 6.2 and 11)
+  const p2=seg(t,6.2,7.2);
+  if(p2>0){
+    const x3=ox+3*ux,y3=oy-9*uy;
+    C(x3,y3,1.5,rg(cB,p2));
+    const sl=-6*uy/ux;
+    ln(x3-5,y3-5*sl,x3+5,y3+5*sl,rg(cB,p2),1.1);
+    dash(()=>{
+      ln(x3,y3,x3+ux,y3,rg(cW,.5*p2),.3);
+      ln(x3+ux,y3,x3+ux,y3+6*uy*(-1),rg(cB,.7*p2),.3);
+    });
+    tx('At x = 3:',12,-15,3.6,rg(cB,1),p2);
+    tx('f(3) = 3² = 9',12,-10,3.3,rg(cW,1),p2);
+    tx('f′(3) = 2(3) = 6 (Slope)',12,-5,3.8,rg(cB,1),p2);
+    tx('3× steeper! Slope = 6',12,0,2.8,rg(cG,1),p2);
+  }
+}
+
+function s4(t){
+  // Dual graph: f(x) above, f'(x) traced below!
+  const k=seg(t,.2,1);
+  tx('The Derivative Function: f′(x)',0,-24,4.4,rg(cG,1),k);
+  
+  // Upper graph: f(x) = 0.05 x^2
+  // Lower graph: f'(x) = 0.1 x
+  dash(()=>{
+    ln(-35,-6,35,-6,rg(cW,.2*k),.3); // upper axis
+    ln(-35,16,35,16,rg(cW,.2*k),.3);  // lower axis
+    ln(0,-20,0,22,rg(cW,.2*k),.3);
+  });
+  tx('f(x) = x²',-24,-17,3,rg(cW,.8),k);
+  tx('f′(x) = 2x',-24,5,3,rg(cB,.9),k);
+
+  // Sweep
+  const prog=seg(t,1.5,9.5);
+  const curX=-24+48*prog;
+
+  // Upper curve f(x)
+  x.beginPath();
+  for(let px=-24;px<=24;px++){
+    const py=-6-0.03*px*px;
+    if(px===-24)x.moveTo(px,py);else x.lineTo(px,py);
+  }
+  x.strokeStyle=rg(cW,.4*k);x.lineWidth=.5;x.stroke();
+
+  // Lower line f'(x)
+  x.beginPath();
+  for(let px=-24;px<=curX;px++){
+    const py=16-0.3*px;
+    if(px===-24)x.moveTo(px,py);else x.lineTo(px,py);
+  }
+  x.strokeStyle=rg(cB,1);x.lineWidth=.9;x.stroke();
+
+  // Current tangent at upper curve
+  const upY=-6-0.03*curX*curX;
+  const slope=-0.06*curX;
+  ln(curX-6,upY-6*slope,curX+6,upY+6*slope,rg(cG,1),1);
+  C(curX,upY,1.3,rg(cG,1));
+
+  // Connect to lower point
+  const lowY=16-0.3*curX;
+  dash(()=>{ln(curX,upY,curX,lowY,rg(cG,.4),.3)});
+  C(curX,lowY,1.4,rg(cB,1));
+
+  tx(`x = ${(curX/6).toFixed(1)}   slope = ${(-slope*10).toFixed(1)}`,0,-1,3,rg(cW,1),k);
+}
+
+function s5(t){
+  // Critical Points: where tangent is horizontal (f'(x) = 0)
+  const k=seg(t,.2,1.2);
+  tx('Local Extrema:  f′(x) = 0',0,-24,4.6,rg(cG,1),k);
+  // Cubic curve with local max and local min
+  x.beginPath();
+  for(let px=-28;px<=28;px++){
+    const py=-0.002*px*px*px+0.05*px*px+0.1*px;
+    // let's do nice smooth cubic: py = 0.001*(px+15)*(px)*(px-15)
+    const y=-0.0018*(px+18)*px*(px-18);
+    if(px===-28)x.moveTo(px,y);else x.lineTo(px,y);
+  }
+  x.strokeStyle=rg(cW,.7*k);x.lineWidth=.7;x.stroke();
+
+  // Peak at approx -10.4, valley at +10.4
+  const xPeak=-10.4,yPeak=-0.0018*(xPeak+18)*xPeak*(xPeak-18);
+  const xValley=10.4,yValley=-0.0018*(xValley+18)*xValley*(xValley-18);
+
+  const a1=seg(t,2,3.5),a2=seg(t,4.5,6);
+  // Tangent at peak
+  if(a1>0){
+    ln(xPeak-12,yPeak,xPeak+12,yPeak,rg(cG,a1),1.3);
+    C(xPeak,yPeak,1.5,rg(cG,a1));
+    tx('Peak (Maximum)',xPeak,yPeak-5.5,3.2,rg(cG,1),a1);
+    tx('f′(x) = 0',xPeak,yPeak+4.5,3,rg(cG,1),a1);
+  }
+  // Tangent at valley
+  if(a2>0){
+    ln(xValley-12,yValley,xValley+12,yValley,rg(cB,a2),1.3);
+    C(xValley,yValley,1.5,rg(cB,a2));
+    tx('Valley (Minimum)',xValley,yValley+5.5,3.2,rg(cB,1),a2);
+    tx('f′(x) = 0',xValley,yValley-4.5,3,rg(cB,1),a2);
+  }
+  tx('Horizontal tangent reveals peaks and valleys',0,20,3.6,rg(cW,1),seg(t,6,7.5));
+}
+
+function s6(t){
+  // Finale: shimmering tangent envelope and universal pulse of calculus
+  for(let i=0;i<24;i++){
+    const an=i/24*6.283+t*.4;
+    const px=22*Math.cos(an),py=12*Math.sin(an);
+    const sl=-Math.tan(an+.5);
+    ln(px-6,py-6*sl,px+6,py+6*sl,rg(i%2?cA:cB,.35),.4);
+  }
+  C(0,0,1,rg(cG,1));
+  tx('Derivatives',0,-6,9.5,rg(cW,1),seg(t,.5,1.5));
+  tx('the mathematics of motion & change',0,4,3.6,rg(cG,1),seg(t,1.5,2.5));
+}
+
+const D=[6.5,10.5,13.5,11,10.5,9,7],F=[s0,s1,s2,s3,s4,s5,s6],TOT=D.reduce((a,b)=>a+b),N=D.length-1;
+const CP=[
+[[0,'How fast is something changing at this exact instant?'],[3,'A curved road does not have a single slope — it changes constantly.']],
+[[0,'Pick two points on a curve and draw a line: the secant.'],[3,'Slide the second point closer and closer: Δx → 0.'],[6.8,'In the limit, the secant snaps into the tangent line.']],
+[[0,'The tangent touches the curve at a single point, matching its direction.'],[3.5,'As the point moves, the tangent rotates continuously.'],[7.5,'Climbing steeply gives a large positive derivative; valleys are zero.']],
+[[0,'Take f(x) = x², with derivative f′(x) = 2x.'],[2,'At x = 1, the slope is 2.'],[6.5,'At x = 3, the slope is 6: three times steeper!']],
+[[0,'Compute the slope at every position to get a whole new function.'],[3.5,'For a parabola, the slope grows in a straight line: f′(x) = 2x.']],
+[[0,'Where the tangent lies perfectly horizontal, the derivative is zero.'],[3.5,'This reveals peaks and valleys — the secret to optimization.']],
+[[0,'From planetary orbits to machine learning gradients…'],[3,'Derivatives measure the instantaneous pulse of the universe.']]];
+
+let T=0,pl=true,L=performance.now(),key='';
+function sync(){bt.textContent=T>=TOT?'Replay':pl?'Pause':'Play'}
+bt.onclick=()=>{if(T>=TOT){T=0;pl=true}else pl=!pl;sync()};
+addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();bt.click()}});
+tr.onclick=e=>{const r=tr.getBoundingClientRect();T=cl((e.clientX-r.left)/r.width)*TOT*.999;pl=true;sync()};
+function loop(n){const dt=Math.min(.1,(n-L)/1000);L=n;
+if(pl){T=Math.min(TOT,T+dt);if(T>=TOT){pl=false;sync()}}
+let i=0,s=0;while(i<N&&T>=s+D[i]){s+=D[i];i++}const t=T-s;
+x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,sw,sh);
+for(let j=0;j<50;j++){x.fillStyle=`rgba(${cW},.13)`;x.beginPath();x.arc(sw*(.5+.5*Math.sin(j*7.3+n*.0008*(1+j%3*.3))),sh*(.5+.5*Math.sin(j*3.1+n*.0011)),1+j%3,0,7);x.fill()}
+x.translate(sw/2,sh*.42);x.scale(U,U);F[i](t);x.setTransform(1,0,0,1,0,0);
+let c=CP[i][0];for(const q of CP[i])if(q[0]<=t)c=q;const k=i+c[1];
+if(k!==key){key=k;cap.textContent=c[1];cap.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:600,easing:'ease-out'})}
+fl.style.width=T/TOT*100+'%';requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script></body></html>

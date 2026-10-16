@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Complex Numbers — The Film</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0d0f2e;--ink:#f3f0ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#1c1e55,var(--bg) 70%);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#cap{position:absolute;left:5vw;right:5vw;bottom:84px;text-align:center;font-weight:600;font-size:clamp(17px,3vw,30px);line-height:1.3;text-shadow:0 2px 18px #0d0f2e}
+#bar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:14px;align-items:center;padding:14px 18px}
+button{background:rgba(243,240,255,.14);color:var(--ink);border:0;border-radius:999px;padding:8px 20px;font:inherit;font-weight:600;cursor:pointer;min-width:84px}
+button:hover{background:rgba(243,240,255,.24)}
+button:focus-visible,#tr:focus-visible{outline:2px solid #ffd166;outline-offset:3px}
+#tr{flex:1;height:10px;border-radius:9px;background:rgba(243,240,255,.14);cursor:pointer;overflow:hidden}
+#fl{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6b57,#ffd166,#2ee6c5)}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="cap" aria-live="polite"></div>
+<div id="bar"><button id="b">Pause</button><div id="tr" tabindex="0" role="slider" aria-label="Progress"><i id="fl"></i></div></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),cap=document.getElementById('cap'),bt=document.getElementById('b'),tr=document.getElementById('tr'),fl=document.getElementById('fl');
+const cA='255,107,87',cB='46,230,197',cG='255,209,102',cW='243,240,255',FF="'Bricolage Grotesque',system-ui,sans-serif";
+let sw,sh,U,dpr;
+function rs(){dpr=window.devicePixelRatio||1;sw=innerWidth;sh=innerHeight;cv.width=sw*dpr;cv.height=sh*dpr;U=Math.min(sw/100,sh/75)}
+addEventListener('resize',rs);rs();
+const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),ez=v=>{v=cl(v);return v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2},seg=(t,a,b)=>ez((t-a)/(b-a)),w=(t,a,b)=>seg(t,a,a+.5)*(1-seg(t,b-.5,b)),rg=(c,a)=>`rgba(${c},${a})`;
+const C=(a,b,r,f,s,l=.4)=>{x.beginPath();x.arc(a,b,Math.max(r,0),0,7);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=l;x.stroke()}};
+const ln=(a,b,c,d,col,l=.5)=>{x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.strokeStyle=col;x.lineWidth=l;x.stroke()};
+const tx=(s,a,b,z,col,al=1)=>{if(al<=.01)return;x.save();x.scale(1/U,1/U);x.globalAlpha=Math.min(1,al);x.fillStyle=col;x.font=`800 ${z*U}px ${FF}`;x.textAlign='center';x.textBaseline='middle';x.fillText(s,a*U,b*U);x.restore()};
+const dash=(f)=>{x.setLineDash([1,1]);f();x.setLineDash([])};
+
+// Arrow helper
+function arrow(x1,y1,x2,y2,col,lw=.8,head=2.2){
+  const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
+  if(len<0.2)return;
+  ln(x1,y1,x2,y2,col,lw);
+  const ang=Math.atan2(dy,dx);
+  x.beginPath();
+  x.moveTo(x2,y2);
+  x.lineTo(x2-head*Math.cos(ang-0.45),y2-head*Math.sin(ang-0.45));
+  x.lineTo(x2-head*Math.cos(ang+0.45),y2-head*Math.sin(ang+0.45));
+  x.closePath();
+  x.fillStyle=col;x.fill();
+}
+
+// Complex Plane Axes
+function drawPlane(al=1,size=28){
+  dash(()=>{
+    ln(-size,0,size,0,rg(cW,.35*al),.35);
+    ln(0,-size,0,size,rg(cW,.35*al),.35);
+  });
+  // Circles for radius
+  x.strokeStyle=rg(cW,.12*al);x.lineWidth=.25;
+  x.beginPath();x.arc(0,0,12,0,7);x.stroke();
+  x.beginPath();x.arc(0,0,24,0,7);x.stroke();
+  tx('Re',size+3,0,3,rg(cW,.8),al);
+  tx('Im',0,-size-2.5,3,rg(cW,.8),al);
+}
+
+function s0(t){
+  // Title Scene: rotating complex arrow leaving a glowing ring
+  const k=seg(t,.2,2.5);
+  drawPlane(k,24);
+  const ang=t*1.8;
+  const rad=16;
+  const px=rad*Math.cos(ang),py=-rad*Math.sin(ang);
+  // Trail
+  x.beginPath();
+  for(let a=0;a<=ang;a+=.08){
+    const rx=rad*Math.cos(a),ry=-rad*Math.sin(a);
+    if(a===0)x.moveTo(rx,ry);else x.lineTo(rx,ry);
+  }
+  x.strokeStyle=rg(cG,.5);x.lineWidth=.6;x.stroke();
+
+  arrow(0,0,px,py,rg(cG,1),1.2,2.6);
+  C(px,py,1.6,rg(cG,1));
+
+  tx('Complex Numbers',0,-12,7.5,rg(cW,1),seg(t,1.8,3));
+  tx('Multiplication as rotation and scaling',0,-5,3.6,rg(cG,1),seg(t,3,4.2));
+  tx('where geometry and algebra become one',0,1,3,rg(cB,1),seg(t,4.2,5.4));
+}
+
+function s1(t){
+  // The Argand Plane & Polar representation
+  const k=seg(t,.2,1);
+  drawPlane(k,26);
+
+  // Vector z = 14 + 10i
+  // In screen coords: x = 15, y = -12
+  const vx=15*k,vy=-11*k;
+  arrow(0,0,vx,vy,rg(cG,1),1.1,2.5);
+  C(vx,vy,1.5,rg(cG,1));
+
+  // Cartesian coordinates projection
+  const pA=seg(t,1.5,2.8);
+  if(pA>0){
+    dash(()=>{
+      ln(vx,0,vx,vy,rg(cA,.7*pA),.3);
+      ln(0,vy,vx,vy,rg(cB,.7*pA),.3);
+    });
+    tx('a (Real)',vx/2,2.5,2.6,rg(cA,1),pA);
+    tx('b (Imag)',-3.5,vy/2,2.6,rg(cB,1),pA);
+    tx('z = a + bi',vx+5,vy-2,3.4,rg(cG,1),pA);
+  }
+
+  // Polar coordinates: r and theta
+  const pB=seg(t,3.5,5);
+  if(pB>0){
+    const ang=Math.atan2(-vy,vx);
+    x.beginPath();
+    x.arc(0,0,5,0,-ang,true);
+    x.strokeStyle=rg(cG,pB);x.lineWidth=.4;x.stroke();
+    tx('θ',6.5,-3,2.7,rg(cG,1),pB);
+    tx('r = |z|',vx*.45,vy*.55-2.5,2.7,rg(cW,1),pB);
+    tx('Euler Form:  z = r e^(iθ)',0,-24,4.2,rg(cG,1),pB);
+    tx('r = √(a² + b²)   |   θ = arctan(b/a)',0,23,3.2,rg(cW,.85),pB);
+  }
+}
+
+function s2(t){
+  // The Magic of i: Multiplication by i as a 90-degree counterclockwise rotation
+  const k=seg(t,.2,.8);
+  drawPlane(k,24);
+  const R=15;
+
+  // Orbit steps:
+  // Step 0: 1 (angle 0)
+  // Step 1: i (angle 90)
+  // Step 2: -1 = i^2 (angle 180)
+  // Step 3: -i = i^3 (angle 270)
+  const st=cl(t/2.5); // smoothly advances through 4 quarters
+  const curAng=st*Math.PI*2;
+  const px=R*Math.cos(curAng),py=-R*Math.sin(curAng);
+
+  // Arc trail
+  x.beginPath();
+  x.arc(0,0,R,0,-curAng,true);
+  x.strokeStyle=rg(cG,.6);x.lineWidth=.7;x.stroke();
+
+  arrow(0,0,px,py,rg(cG,1),1.2,2.6);
+  C(px,py,1.5,rg(cG,1));
+
+  // Markers
+  C(R,0,1.2,rg(cW,.8));tx('1',R+3,0,3,rg(cW,1));
+  C(0,-R,1.2,rg(cB,.8));tx('i',0,-R-3.5,3.2,rg(cB,1));
+  C(-R,0,1.2,rg(cA,.8));tx('−1 = i²',-R-6,0,3.2,rg(cA,1));
+  C(0,R,1.2,rg(cW,.8));tx('−i = i³',0,R+3.5,3.2,rg(cW,1));
+
+  tx('Multiplication by i rotates 90° counterclockwise',0,-24,4.2,rg(cG,1),k);
+  tx('Two 90° rotations = 180° flip = −1:  i² = −1',0,23,3.8,rg(cA,1),seg(t,4,5.5));
+}
+
+function s3(t){
+  // Concrete Example: z = 1 + i, multiplying by i -> -1 + i
+  const k=seg(t,.2,1);
+  drawPlane(k,24);
+  const S=11; // 1 math unit = 11 pixels
+
+  tx('Example:  z = 1 + i, multiplied by i',0,-24,4.4,rg(cG,1),k);
+
+  // Initial z: (1, 1), angle 45 deg, length sqrt(2)*S = 1.414*11 = 15.55
+  const rad=Math.SQRT2*S;
+  const initialAng=Math.PI/4;
+
+  // Rotation progress: from 0 to 90 deg (PI/2)
+  const rotProg=seg(t,2,6);
+  const angNow=initialAng+rotProg*(Math.PI/2);
+  const curX=rad*Math.cos(angNow),curY=-rad*Math.sin(angNow);
+
+  // Original vector ghost
+  arrow(0,0,S,-S,rg(cW,.35),.7,2);
+  tx('1 + i',S+4,-S-1,3,rg(cW,.6),k);
+
+  // Rotation arc
+  if(rotProg>0){
+    x.beginPath();
+    x.arc(0,0,rad,-initialAng,-angNow,true);
+    x.strokeStyle=rg(cG,.8);x.lineWidth=.6;x.stroke();
+    tx('+90°',0,-rad-3,2.8,rg(cG,1),rotProg);
+  }
+
+  // Active moving vector
+  arrow(0,0,curX,curY,rg(rotProg>.9?cB:cA,1),1.2,2.6);
+  C(curX,curY,1.6,rg(cG,1));
+
+  // Final point
+  if(rotProg>.9){
+    tx('i(1 + i) = −1 + i',-S-7,-S-3,3.6,rg(cB,1));
+    tx('From (1, 1) to (−1, 1)',-S-7,-S+2,2.8,rg(cW,.8));
+  }
+
+  // Calculation Panel
+  x.fillStyle=rg('13,15,46',.85);x.strokeStyle=rg(cB,.8);x.lineWidth=.4;
+  x.fillRect(-34,10,32,14);x.strokeRect(-34,10,32,14);
+  tx('ALGEBRAIC CHECK',-18,13.5,2.2,rg(cW,.7));
+  tx('i(1 + i) = i + i²',-18,17,2.8,rg(cW,1));
+  tx('= i + (−1) = −1 + i',-18,20.8,3.1,rg(cG,1));
+
+  tx('Length remains √2 — pure 90° rotation!',0,24,3.4,rg(cG,1),seg(t,6.5,8));
+}
+
+function s4(t){
+  // General Multiplication: Rotation AND Scaling
+  const k=seg(t,.2,1);
+  drawPlane(k,26);
+
+  tx('General Multiplication: Scale & Rotate',0,-24,4.4,rg(cG,1),k);
+
+  // z1 = 1.2 at 30 deg
+  // z2 = 1.5 at 45 deg
+  // z1 * z2 = 1.8 at 75 deg
+  const r1=10,th1=Math.PI/6;
+  const r2Mult=1.6,th2Add=Math.PI/4;
+
+  const multProg=seg(t,2,7.5);
+  const curR=r1*(1+(r2Mult-1)*multProg);
+  const curTh=th1+th2Add*multProg;
+
+  // Base vector z1
+  arrow(0,0,r1*Math.cos(th1),-r1*Math.sin(th1),rg(cA,.4),.6,1.8);
+  tx('z₁',r1*Math.cos(th1)+3,-r1*Math.sin(th1),2.8,rg(cA,.8));
+
+  // Vector z2 shown as multiplier
+  const z2x=12*Math.cos(th2Add),z2y=-12*Math.sin(th2Add);
+  arrow(0,0,z2x,z2y,rg(cB,.5),.6,1.8);
+  tx('z₂',z2x+3,z2y,2.8,rg(cB,.8));
+
+  // Active product vector
+  const curX=curR*Math.cos(curTh),curY=-curR*Math.sin(curTh);
+  arrow(0,0,curX,curY,rg(cG,1),1.3,2.8);
+  C(curX,curY,1.6,rg(cG,1));
+
+  // Arcs for angle addition
+  x.beginPath();x.arc(0,0,6,-th1,-curTh,true);
+  x.strokeStyle=rg(cG,.7);x.lineWidth=.4;x.stroke();
+
+  // Mathematical rules HUD
+  x.fillStyle=rg('13,15,46',.88);x.strokeStyle=rg(cG,.8);x.lineWidth=.4;
+  x.fillRect(-35,-18,34,20);x.strokeRect(-35,-18,34,20);
+  tx('GEOMETRIC RULE',-18,-14,2.3,rg(cW,.7));
+  tx('1. Magnitudes MULTIPLY:',-18,-9.5,2.7,rg(cA,1));
+  tx(`|z₁ · z₂| = r₁ × r₂ = ${((curR/r1)*1.2).toFixed(2)}`,-18,-5.5,2.9,rg(cW,1));
+  tx('2. Angles ADD together:',-18,-1,2.7,rg(cB,1));
+  tx(`arg(z₁ · z₂) = θ₁ + θ₂ = ${(curTh*180/Math.PI).toFixed(0)}°`,-18,3,2.9,rg(cG,1));
+  tx('z₁ · z₂ = (r₁ r₂) e^(i(θ₁ + θ₂))',0,23,3.8,rg(cG,1),seg(t,5,6.5));
+}
+
+function s5(t){
+  // Powers of z: Logarithmic Spiral
+  const k=seg(t,.2,1);
+  drawPlane(k,26);
+  tx('Powers of z:  zⁿ traces a Spiral',0,-24,4.4,rg(cG,1),k);
+
+  const baseR=1.12,stepTh=0.6;
+  let px=4,py=0;
+  C(px,-py,1,rg(cW,.7));
+  const maxN=Math.floor(cl((t-1)/7)*12);
+
+  x.beginPath();x.moveTo(px,-py);
+  for(let n=1;n<=maxN;n++){
+    const r=4*Math.pow(baseR,n);
+    const th=n*stepTh;
+    const nx=r*Math.cos(th),ny=r*Math.sin(th);
+    x.lineTo(nx,-ny);
+    arrow(px,-py,nx,-ny,rg(cG,.8),.6,1.8);
+    C(nx,-ny,1.3,rg(cB,1));
+    px=nx;py=ny;
+  }
+  x.strokeStyle=rg(cG,.4);x.lineWidth=.4;x.stroke();
+
+  tx('Multiplication repeatedly expands & spins space',0,23,3.6,rg(cW,1),seg(t,3,4.5));
+}
+
+function s6(t){
+  // Finale
+  for(let i=0;i<20;i++){
+    const an=i/20*6.283+t*.5;
+    const r=16+6*Math.sin(t*1.5+i);
+    arrow(0,0,r*Math.cos(an),-r*Math.sin(an),rg([cG,cA,cB][i%3],.5),.5,1.5);
+  }
+  C(0,0,1.2,rg(cG,1));
+  tx('Complex Numbers',0,-6,9.5,rg(cW,1),seg(t,.5,1.5));
+  tx('multiplication is rotation and growth',0,4,3.6,rg(cG,1),seg(t,1.5,2.5));
+}
+
+const D=[6.5,10,11,12,14,9,7],F=[s0,s1,s2,s3,s4,s5,s6],TOT=D.reduce((a,b)=>a+b),N=D.length-1;
+const CP=[
+[[0,'Numbers are not trapped on a one-dimensional line.'],[3,'Adding the imaginary unit i unlocks the 2D complex plane.']],
+[[0,'A complex number z = a + bi is both a point and a vector.'],[3,'Its real part sits horizontally; its imaginary part sits vertically.'],[6.5,'In polar form, it has a length r and an angle θ: z = r e^(iθ).']],
+[[0,'What does multiplication by i actually do?'],[2.5,'Multiply 1 by i: it rotates 90° to the imaginary axis.'],[6.5,'Multiply by i again: 90° more lands on −1. That is why i² = −1!']],
+[[0,'Take z = 1 + i at 45° with length √2.'],[2.5,'Multiply by i: i(1 + i) = −1 + i.'],[6.5,'The vector rotates exactly 90° to (−1, 1), preserving its length.']],
+[[0,'For any two complex numbers, multiplication combines two actions.'],[3.5,'Their lengths multiply together: |z₁ · z₂| = r₁ × r₂.'],[7.5,'Their angles add together: arg(z₁ · z₂) = θ₁ + θ₂.']],
+[[0,'Repeated multiplication spins out a golden spiral.'],[3.5,'From quantum wavefunctions to signal processing and electromagnetism…']],
+[[0,'Complex numbers reveal that algebra is geometry in disguise.'],[3,'Rotation and scaling, united in one equation.']]];
+
+let T=0,pl=true,L=performance.now(),key='';
+function sync(){bt.textContent=T>=TOT?'Replay':pl?'Pause':'Play'}
+bt.onclick=()=>{if(T>=TOT){T=0;pl=true}else pl=!pl;sync()};
+addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();bt.click()}});
+tr.onclick=e=>{const r=tr.getBoundingClientRect();T=cl((e.clientX-r.left)/r.width)*TOT*.999;pl=true;sync()};
+function loop(n){const dt=Math.min(.1,(n-L)/1000);L=n;
+if(pl){T=Math.min(TOT,T+dt);if(T>=TOT){pl=false;sync()}}
+let i=0,s=0;while(i<N&&T>=s+D[i]){s+=D[i];i++}const t=T-s;
+x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,sw,sh);
+for(let j=0;j<50;j++){x.fillStyle=`rgba(${cW},.13)`;x.beginPath();x.arc(sw*(.5+.5*Math.sin(j*7.3+n*.0008*(1+j%3*.3))),sh*(.5+.5*Math.sin(j*3.1+n*.0011)),1+j%3,0,7);x.fill()}
+x.translate(sw/2,sh*.42);x.scale(U,U);F[i](t);x.setTransform(1,0,0,1,0,0);
+let c=CP[i][0];for(const q of CP[i])if(q[0]<=t)c=q;const k=i+c[1];
+if(k!==key){key=k;cap.textContent=c[1];cap.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:600,easing:'ease-out'})}
+fl.style.width=T/TOT*100+'%';requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script></body></html>
+
